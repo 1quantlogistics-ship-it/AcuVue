@@ -1,0 +1,11 @@
+torch
+torchvision
+fastapi
+uvicorn
+streamlit
+wandb
+dvc[gdrive]
+hydra-core
+scikit-image
+opencv-python
+pytest
