@@ -1,0 +1,96 @@
+# Phase 01: Dry Run (Smoke Test)
+# Purpose: Verify the segmentation pipeline executes on GPU and produces a model checkpoint
+
+goal: "Verify the segmentation pipeline executes on GPU and produces a model checkpoint"
+
+dependencies: []  # First phase, no dependencies
+
+tasks:
+  - task: "Set up Python virtual environment"
+    description: "Create and activate .venv, install requirements.txt"
+    status: "pending"
+
+  - task: "Confirm PyTorch sees CUDA"
+    description: "Verify torch.cuda.is_available() returns True on RunPod A40"
+    status: "pending"
+
+  - task: "Run 1-epoch training"
+    description: "Execute train_segmentation.py with phase01_smoke_test.yaml config"
+    status: "pending"
+
+  - task: "Verify checkpoint creation"
+    description: "Confirm models/unet_disc_cup.pt exists and loads successfully"
+    status: "pending"
+
+commands:
+  # Environment setup
+  - command: "python -m venv .venv"
+    description: "Create virtual environment"
+
+  - command: "source .venv/bin/activate"  # Linux/Mac
+    description: "Activate virtual environment"
+
+  - command: "pip install --upgrade pip"
+    description: "Update pip"
+
+  - command: "pip install -r requirements.txt"
+    description: "Install dependencies"
+
+  # GPU verification
+  - command: "python -c \"import torch; print(f'CUDA Available: {torch.cuda.is_available()}'); print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"N/A\"}')\""
+    description: "Verify CUDA availability"
+
+  # Training execution
+  - command: "python src/training/train_segmentation.py"
+    description: "Run 1-epoch smoke test (uses phase01_smoke_test.yaml by default)"
+
+  - command: "python src/training/train_segmentation.py training.epochs=1"
+    description: "Explicitly override to 1 epoch (Hydra syntax)"
+
+  # Checkpoint verification
+  - command: "python -c \"import torch; model = torch.load('models/unet_disc_cup.pt'); print('✓ Checkpoint OK')\""
+    description: "Test checkpoint loading"
+
+  - command: "python scripts/verify_phase01.py"
+    description: "Run comprehensive verification script"
+
+expected_outputs:
+  - output: "Epoch 1/1 - Average Loss: <value>"
+    description: "Training completes and prints final epoch loss"
+
+  - output: "✓ Checkpoint saved successfully"
+    description: "Checkpoint saves to models/unet_disc_cup.pt"
+
+  - output: "✓ Checkpoint loads successfully"
+    description: "Saved checkpoint can be loaded without errors"
+
+  - output: "Using device: cuda"
+    description: "CUDA GPU is detected and used (on RunPod)"
+
+  - output: "GPU: NVIDIA A40"
+    description: "A40 GPU is recognized (on RunPod)"
+
+success_criteria:
+  - "Training script runs to completion without errors"
+  - "CUDA is available and utilized"
+  - "Checkpoint file exists and is >1MB"
+  - "Checkpoint loads successfully"
+  - "All verification checks pass"
+
+tag: "v1.0-segmentation-dryrun-ok"
+
+next_phase: "phase_02_baseline.yaml"
+
+notes:
+  - "This phase uses dummy data (random numpy arrays) for speed"
+  - "Single epoch is sufficient to verify pipeline functionality"
+  - "GPU detection is critical for subsequent phases"
+  - "Checkpoint loading test ensures model architecture is correct"
+
+estimated_duration: "2-5 minutes (including setup)"
+
+runpod_specific:
+  - "SSH into RunPod pod: ssh root@<pod_ip> -p <port> -i ~/.ssh/id_ed25519"
+  - "Clone repo: git clone https://github.com/1quantlogistics/AcuVue.git"
+  - "Navigate to workspace: cd /workspace/AcuVue"
+  - "Ensure Torch 2.8 + CUDA 12.8 are already installed in pod template"

@@ -1,0 +1,61 @@
+# Phase 03e: Preprocessing Audit - ImageNet Normalization
+# ==========================================================
+#
+# Background:
+# Phase 03d (all revisions A, B, C) failed to improve G1020 performance (AUC ~0.53).
+# Preprocessing audit revealed CLAHE contamination across all datasets.
+#
+# Phase 03e Changes:
+# 1. Removed CLAHE from all preprocessing scripts
+# 2. Regenerated all datasets from scratch (combined_v2)
+# 3. Implemented ImageNet normalization for EfficientNet-B0 transfer learning
+# 4. Validated normalization implementation (all tests passed)
+#
+# Key Parameters:
+# - use_imagenet_norm: true  → Apply ImageNet mean/std normalization
+# - preprocessing_version: v3_no_clahe_imagenet_norm
+# - Dataset: combined_v2 (clean, no CLAHE)
+#
+# Expected Impact:
+# - Better transfer learning from pretrained EfficientNet-B0
+# - Improved feature extraction quality
+# - More stable gradient flow
+#
+# Validation:
+# - scripts/validate_normalization.py → All tests passed
+# - Value ranges: [0, 1] → [-1.83, 2.18] after normalization
+# - Formula verified: (img/255 - mean) / std
+
+defaults:
+  - phase03d_baseline
+
+data:
+  use_imagenet_norm: true  # Enable ImageNet normalization (Phase 03e)
+  preprocessing_version: "v3_no_clahe_imagenet_norm"
+
+logging:
+  wandb:
+    run_name: phase03e_imagenet_norm
+    tags:
+      - phase03e
+      - preprocessing_audit
+      - imagenet_normalization
+      - no_clahe
+      - clean_datasets
+      - combined_v2
+    notes: |
+      Phase 03e: Preprocessing audit complete.
+
+      Changes:
+      - CLAHE removed from all preprocessing scripts
+      - Datasets regenerated without CLAHE (combined_v2)
+      - ImageNet normalization enabled for EfficientNet-B0
+      - Preprocessing version: v3_no_clahe_imagenet_norm
+
+      Validation:
+      - Normalization formula verified (max diff: 0.000000)
+      - Value ranges correct: [0,1] → [-1.83, 2.18]
+      - All tests passed (scripts/validate_normalization.py)
+
+      Dataset: combined_v2 (1905 samples: 1394 train, 132 val, 379 test)
+      Class balance: 73.3% Normal, 26.7% Glaucoma
