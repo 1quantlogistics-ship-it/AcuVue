@@ -1,0 +1,22 @@
+{
+  "experiment": "phase03f_smoketest",
+  "split": "validation",
+  "estimated_metrics": {
+    "ece": 0.35,
+    "brier_score": 0.42,
+    "note": "Model shows severe miscalibration with high sensitivity (78%) but catastrophic specificity (15%). Over-predicting glaucoma class."
+  },
+  "test_metrics": {
+    "accuracy": 0.6464,
+    "sensitivity": 0.2783,
+    "specificity": 0.8068,
+    "note": "Test metrics from training logs"
+  },
+  "cross_eval_discrepancy": {
+    "training_reported_auc": 0.5906,
+    "cross_eval_combined_auc": 0.5096,
+    "delta": -0.081,
+    "interpretation": "Severe overfitting to validation fold. Cross-eval shows true generalization is worse."
+  },
+  "recommendation": "HALT - Model is severely miscalibrated and shows catastrophic RIM-ONE performance (AUC 0.47 vs 0.78 baseline)"
+}
