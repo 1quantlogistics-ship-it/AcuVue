@@ -1,0 +1,70 @@
+# Phase 02: Baseline Training Configuration
+# 10-epoch training with train/val splits, metrics tracking, and checkpointing
+
+training:
+  epochs: 10
+  batch_size: 4
+  learning_rate: 0.001
+  save_best_only: false        # Save all checkpoints or only best
+  patience: -1                  # Early stopping patience (-1 = disabled)
+
+optimizer:
+  type: adam                    # adam, adamw, sgd
+  weight_decay: 0.0001
+
+scheduler:
+  enabled: false                # Learning rate scheduler
+  type: cosine                  # cosine, step, plateau
+  warmup_epochs: 0
+
+model:
+  in_channels: 3
+  out_channels: 1
+  architecture: unet            # unet (phase02), effnet_fusion (phase03)
+
+data:
+  source: synthetic             # synthetic, rim_one, refuge
+  data_root: data/synthetic
+  num_samples: 100
+  train_split: 0.7
+  val_split: 0.2
+  test_split: 0.1
+  image_size: 512
+  use_augmentation: true        # Enable augmentation for training
+
+augmentation:
+  horizontal_flip: 0.5
+  vertical_flip: 0.0
+  rotation_degrees: 5
+  brightness: 0.1
+  contrast: 0.1
+
+system:
+  device: auto                  # auto, cuda, cpu
+  seed: 42
+  log_level: INFO
+  num_workers: 0                # DataLoader workers (0 for main thread)
+
+logging:
+  log_every_n_steps: 5
+  save_train_images: false      # Save sample predictions during training
+  wandb:
+    enabled: false              # WandB tracking (Phase 03)
+    project: acuvue-glaucoma
+    run_name: phase02_baseline
+
+checkpoint:
+  save_dir: models
+  save_frequency: 1             # Save every N epochs
+  metric_name: val_dice         # Metric for best model: val_dice, val_loss
+  metric_mode: max              # max (higher better) or min (lower better)
+
+evaluation:
+  metrics:
+    - dice
+    - iou
+    - accuracy
+    - sensitivity
+    - specificity
+  compute_every_n_epochs: 1     # Compute full metrics every N epochs
+  save_predictions: false       # Save test predictions to disk

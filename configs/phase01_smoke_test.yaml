@@ -1,0 +1,30 @@
+# Phase 01: Smoke Test Configuration
+# Purpose: Verify pipeline runs end-to-end with minimal data
+
+training:
+  epochs: 1                    # Single epoch for smoke test
+  batch_size: 2                # Small batch size for speed
+  learning_rate: 0.001         # Standard learning rate
+  num_dummy_samples: 10        # Minimal dataset for fast iteration
+
+model:
+  in_channels: 3               # RGB input images
+  out_channels: 1              # Binary segmentation output
+
+data:
+  image_size: 512              # Standard fundus image size
+  use_augmentation: false      # Disable for smoke test (faster)
+
+system:
+  device: auto                 # auto-detect: cuda if available, else cpu
+  seed: 42                     # Reproducibility
+  log_level: INFO              # Console logging level
+
+checkpoint:
+  save_path: models/unet_disc_cup.pt
+  save_frequency: 1            # Save after every epoch
+
+wandb:
+  enabled: false               # Disable WandB for smoke test
+  project: acuvue-glaucoma
+  run_name: phase01_smoke_test
