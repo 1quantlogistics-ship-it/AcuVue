@@ -235,8 +235,8 @@ python src/training/train_segmentation.py
 - [x] **Phase 02:** Baseline Training (10 epochs, validation, metrics)
 - [x] **Phase 02.5:** Remote GPU Infrastructure (RunPod integration)
 - [x] **Phase 03:** Multi-dataset training with domain normalization
-- [x] **Phase E Week 1:** Architecture Grammar System ← **Current**
-- [ ] **Phase E Week 2:** Augmentation Policy Search
+- [x] **Phase E Week 1:** Architecture Grammar System
+- [x] **Phase E Week 2:** Augmentation Policy Search ← **Current**
 - [ ] **Phase E Week 3:** Loss Function Engineering
 - [ ] **Phase E Week 4:** Cross-Dataset Curriculum Learning
 - [ ] **Phase 04:** CI/CD + Deployment Pipeline
@@ -503,6 +503,124 @@ This project follows a phased development approach. See [claude_plan/](claude_pl
 
 [Add contact information]
 
+## Phase E: Augmentation Policy Search (Week 2)
+
+**Goal:** Enable ARC's Explorer agent to discover augmentation policies that maximize AUC while maintaining DRI (Disc Relevance Index) ≥ 0.6, transforming from fixed augmentation pipelines to learned policy search.
+
+### What's New
+
+**Augmentation Policy Search System** allows ARC agents to propose and evaluate augmentation policies:
+
+- **11 Safe Operations**: Rotate, flip, scale, translate, brightness, contrast, gamma, Gaussian noise/blur
+- **7 Forbidden Operations**: Cutout, color jitter, elastic deform, mixup (destroy diagnostic features)
+- **DRI Validation**: Grad-CAM-based constraint ensuring model attention stays on optic disc
+- **Fast Policy Evaluator**: 5-epoch proxy training (~5s per policy on CPU)
+- **Evolutionary Search**: Mutation, crossover, and fitness ranking
+
+### Quick Start
+
+```python
+from data.policy_augmentor import create_random_policy, PolicyAugmentor
+from evaluation.policy_evaluator import PolicyEvaluator
+from evaluation.dri_metrics import validate_policy_dri
+
+# 1. Generate random policy
+policy = create_random_policy(num_operations=3, seed=42)
+
+# 2. Validate DRI constraint
+dri_result = validate_policy_dri(policy, model, val_dataset, num_samples=10)
+if not dri_result['valid']:
+    print(f"Policy rejected: DRI {dri_result['avg_dri']:.3f} < 0.6")
+
+# 3. Evaluate fitness (fast 5-epoch training)
+evaluator = PolicyEvaluator(model, train_loader, val_loader, num_epochs=5)
+result = evaluator.evaluate_policy(policy)
+
+print(f"Fitness: {result['fitness']:.3f}, AUC: {result['auc']:.3f}, DRI: {result['dri']:.3f}")
+```
+
+### Policy Format
+
+ARC's Explorer agent can propose policies in this format:
+
+```python
+policy = [
+    {"operation": "rotate", "probability": 0.5, "magnitude": 10.0},
+    {"operation": "brightness", "probability": 0.3, "magnitude": 0.1},
+    {"operation": "gaussian_blur", "probability": 0.2, "magnitude": 2.0}
+]
+```
+
+### Safe Operations
+
+| Operation | Magnitude Range | Description |
+|-----------|----------------|-------------|
+| `rotate` | -15° to +15° | Safe rotation range for fundus |
+| `hflip` / `vflip` | N/A | Horizontal/vertical flip |
+| `scale` | 0.9x to 1.1x | Zoom in/out |
+| `translate_x` / `translate_y` | ±10% | Horizontal/vertical shift |
+| `brightness` | ±10% | Brightness adjustment |
+| `contrast` | ±10% | Contrast adjustment |
+| `gamma` | 0.8 to 1.2 | Gamma correction |
+| `gaussian_noise` | σ ≤ 0.05 | Add Gaussian noise |
+| `gaussian_blur` | Kernel ≤ 5 | Gaussian blur |
+
+### Forbidden Operations (Raise Errors)
+
+| Operation | Reason |
+|-----------|--------|
+| `cutout` / `random_erasing` | Can remove optic disc |
+| `color_jitter_hue` / `color_jitter_saturation` | Alters hemorrhage appearance |
+| `elastic_deform` | Distorts anatomical relationships |
+| `mixup` / `cutmix` | Blends multiple diagnostic cases |
+
+### DRI (Disc Relevance Index)
+
+**Constraint**: DRI ≥ 0.6 required for valid policies
+
+```python
+from evaluation.dri_metrics import DRIComputer
+
+dri_computer = DRIComputer(model, dri_threshold=0.6)
+result = dri_computer.compute_dri(image, disc_mask)
+
+# Returns: {'dri': 0.75, 'valid': True, 'attention_map': ...}
+```
+
+DRI measures whether model attention (Grad-CAM) focuses on the optic disc region after augmentation. Policies that cause attention drift are automatically rejected.
+
+### Running Tests
+
+```bash
+# Unit tests (34 tests, ~3 seconds)
+pytest tests/unit/test_augmentation_policy.py -v
+
+# Demo scripts
+python src/data/augmentation_ops.py          # Test safe operations
+python src/data/policy_augmentor.py          # Test policy application
+python src/evaluation/dri_metrics.py         # Test DRI computation
+python src/evaluation/policy_evaluator.py    # Test policy evaluation
+python src/data/visualize_augmentations.py   # Test visualizations
+```
+
+### Integration with ARC
+
+The augmentation policy system integrates with ARC's multi-agent workflow:
+
+| Agent | Function | Usage |
+|-------|----------|-------|
+| **Explorer** | Propose policies | `create_random_policy()`, `mutate_policy()`, `crossover_policies()` |
+| **Critic** | Validate DRI | `validate_policy_dri()`, `PolicyAugmentor(policy)` |
+| **Executor** | Apply policies | `augmentor = PolicyAugmentor(policy); augmentor(image)` |
+| **Historian** | Track performance | `evaluator.compare_policies()`, `visualize_policy_with_heatmap()` |
+
+### Documentation
+
+- **[src/data/README_PHASE_E_WEEK2.md](src/data/README_PHASE_E_WEEK2.md)** - Complete implementation details
+- **[tests/unit/test_augmentation_policy.py](tests/unit/test_augmentation_policy.py)** - Unit test examples
+
+**See Phase E Week 2 documentation for complete details on augmentation policy search.**
+
 ---
 
-**Current Status:** Phase E Week 1 - Architecture Grammar System Complete ✓
+**Current Status:** Phase E Week 2 - Augmentation Policy Search Complete ✓
