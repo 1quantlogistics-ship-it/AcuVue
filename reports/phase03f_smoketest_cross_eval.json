@@ -1,0 +1,36 @@
+{
+  "experiment": "phase03f_smoketest",
+  "model_path": "models/phase03f_smoketest/best_model.pt",
+  "data_root": "data/processed/combined_v2",
+  "split": "test",
+  "timestamp": "2025-01-14T12:27:41Z",
+  "per_dataset_results": {
+    "g1020": {
+      "samples": 205,
+      "accuracy": 0.3073,
+      "auc": 0.5614,
+      "sensitivity": 0.8983,
+      "specificity": 0.0685,
+      "precision": 0.5258,
+      "f1_score": 0.2109
+    },
+    "rim_one": {
+      "samples": 174,
+      "accuracy": 0.3793,
+      "auc": 0.4685,
+      "sensitivity": 0.6607,
+      "specificity": 0.2458,
+      "precision": 0.5042,
+      "f1_score": 0.3678
+    }
+  },
+  "combined_results": {
+    "samples": 379,
+    "accuracy": 0.3404,
+    "auc": 0.5096,
+    "sensitivity": 0.7826,
+    "specificity": 0.1477,
+    "precision": 0.5112,
+    "f1_score": 0.2927
+  }
+}

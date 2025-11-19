@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [Phase 03f - FAILED] - 2025-01-14
+
+### Summary
+**Status**: ❌ **EXPERIMENT FAILED - HYPOTHESIS REJECTED**
+
+Phase 03f smoke test (5 epochs) revealed catastrophic regression on RIM-ONE dataset and severe overfitting. ImageNet normalization hypothesis was rejected. Full 30-epoch training was **NOT AUTHORIZED** per manager decision gate.
+
+### Results
+- **G1020 AUC**: 0.5614 (baseline: 0.5323) → +5.5% (marginal, insufficient)
+- **RIM-ONE AUC**: 0.4685 (baseline: 0.7763) → **–39.7% CATASTROPHIC FAILURE** ❌❌❌
+- **Combined AUC**: 0.5096 (baseline: 0.5323) → –4.3% regression ❌
+- **Calibration (ECE)**: 0.35 (target: ≤0.05) → 7x worse than acceptable ❌
+- **Validation Overfitting**: Training-reported AUC 0.5906 vs cross-eval AUC 0.5096 (–13.7%) ❌
+
+### Root Cause Analysis
+1. **Domain Shift Sensitivity**: ImageNet normalization disrupted RIM-ONE-specific learned patterns
+2. **Insufficient Training**: 5 epochs not enough to learn robust ImageNet-aligned features
+3. **Dataset Heterogeneity**: RIM-ONE and G1020 imaging characteristics incompatible with single normalization scheme
+4. **Over-Correction**: CLAHE removal + ImageNet norm was too aggressive - lost critical domain knowledge
+
+### Deliverables
+- [configs/phase03f_smoketest.yaml](configs/phase03f_smoketest.yaml): 5-epoch smoke test configuration
+- [configs/phase03f.yaml](configs/phase03f.yaml): 30-epoch config (NOT EXECUTED)
+- [models/phase03f_smoketest/best_model.pt](models/phase03f_smoketest/best_model.pt): Failed model checkpoint
+- [reports/phase03f_smoketest_analysis.md](reports/phase03f_smoketest_analysis.md): Complete failure analysis
+- [reports/phase03f_smoketest_cross_eval.json](reports/phase03f_smoketest_cross_eval.json): Per-dataset cross-evaluation
+- [reports/phase03f_calibration.json](reports/phase03f_calibration.json): Calibration assessment
+
+### Decision
+**Manager Decision Gate**: 0/5 success criteria met
+- ❌ G1020 AUC < 0.58 (target: ≥0.58)
+- ❌❌❌ RIM-ONE AUC catastrophic regression (0.4685 vs target ≥0.75)
+- ❌ Severe miscalibration
+- ❌ Validation fold overfitting
+- ❌ Combined AUC regression
+
+**Action**: HALT Phase 03f. Revert to Phase 03d baseline. Plan Phase 03g with domain adaptation focus.
+
+### Lessons Learned
+1. ✓ Smoke test protocol worked as intended - caught failure early (saved 2.5 hours GPU time)
+2. ❌ ImageNet normalization + CLAHE removal is fundamentally flawed for this task
+3. → Phase 03d (despite poor G1020 AUC 0.53) is superior due to balanced cross-dataset performance
+4. → Future work requires domain adaptation techniques, not simple normalization changes
+
 ## [Phase 03e] - 2025-01-14
 
 ### Added
