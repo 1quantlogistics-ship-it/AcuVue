@@ -236,8 +236,8 @@ python src/training/train_segmentation.py
 - [x] **Phase 02.5:** Remote GPU Infrastructure (RunPod integration)
 - [x] **Phase 03:** Multi-dataset training with domain normalization
 - [x] **Phase E Week 1:** Architecture Grammar System
-- [x] **Phase E Week 2:** Augmentation Policy Search ← **Current**
-- [ ] **Phase E Week 3:** Loss Function Engineering
+- [x] **Phase E Week 2:** Augmentation Policy Search
+- [x] **Phase E Week 3:** Loss Function Engineering ← **Current**
 - [ ] **Phase E Week 4:** Cross-Dataset Curriculum Learning
 - [ ] **Phase 04:** CI/CD + Deployment Pipeline
 
@@ -621,6 +621,144 @@ The augmentation policy system integrates with ARC's multi-agent workflow:
 
 **See Phase E Week 2 documentation for complete details on augmentation policy search.**
 
+## Phase E Week 3: Loss Function Engineering
+
+**Goal:** Implement specialized loss functions for medical imaging that handle class imbalance, asymmetric costs, AUC optimization, and attention constraints.
+
+### Quick Start
+
+```python
+from training.loss_factory import build_loss_from_spec
+
+# Example 1: Handle class imbalance
+spec = {
+    "loss_type": "weighted_bce",
+    "pos_weight": 2.0,
+    "neg_weight": 1.0
+}
+loss_fn = build_loss_from_spec(spec)
+
+# Example 2: Reduce false negatives
+spec = {
+    "loss_type": "asymmetric_focal",
+    "gamma_pos": 2.0,   # Focus on hard positive examples
+    "gamma_neg": 0.5,   # Reduce penalty on easy negatives
+    "clip": 0.05
+}
+loss_fn = build_loss_from_spec(spec)
+
+# Example 3: Optimize AUC
+spec = {
+    "loss_type": "auc_surrogate",
+    "margin": 1.0
+}
+loss_fn = build_loss_from_spec(spec)
+
+# Example 4: Add DRI regularization
+spec = {
+    "loss_type": "asymmetric_focal",
+    "gamma_pos": 2.0,
+    "gamma_neg": 0.5,
+    "dri_regularization": True,
+    "lambda_dri": 0.1,
+    "dri_threshold": 0.6
+}
+loss_fn = build_loss_from_spec(spec, model=model)
+
+# Training with combined loss
+result = loss_fn(logits, labels, images, disc_masks, clinical)
+print(f"Total: {result['total']}, Base: {result['base']}, DRI: {result['dri_penalty']}")
+result['total'].backward()
+```
+
+### Loss Functions
+
+| Loss Function | Purpose | Key Parameters |
+|---------------|---------|----------------|
+| **WeightedBCELoss** | Handle class imbalance | `pos_weight`, `neg_weight` (auto-computed) |
+| **AsymmetricFocalLoss** | Reduce false negatives | `gamma_pos=2.0`, `gamma_neg=1.0`, `clip=0.05` |
+| **AUCSurrogateLoss** | Optimize AUC directly | `margin=1.0` |
+| **DRIRegularizer** | Constrain model attention | `lambda_dri=0.1`, `dri_threshold=0.6` |
+| **CombinedLoss** | Base loss + DRI penalty | Any base + DRI parameters |
+
+### When to Use Each Loss
+
+| Goal | Recommended Loss | Configuration |
+|------|------------------|---------------|
+| Handle class imbalance | WeightedBCELoss | Auto-compute weights from data |
+| Reduce false negatives | AsymmetricFocalLoss | `gamma_pos=3.0, gamma_neg=0.5` |
+| Optimize AUC | AUCSurrogateLoss | `margin=1.0` |
+| Enforce attention | CombinedLoss | Any base + `lambda_dri=0.1` |
+| General purpose | AsymmetricFocalLoss | `gamma_pos=2.0, gamma_neg=1.0` |
+
+### ARC Integration
+
+```python
+# ARC Explorer proposes experiment
+experiment = {
+    "architecture_spec": {...},      # Phase E Week 1
+    "augmentation_policy": [...],    # Phase E Week 2
+    "loss_spec": {                   # Phase E Week 3 (NEW)
+        "loss_type": "asymmetric_focal",
+        "gamma_pos": 2.0,
+        "gamma_neg": 0.5,
+        "dri_regularization": True,
+        "lambda_dri": 0.1
+    }
+}
+
+# Build all components
+model = build_model_from_spec(experiment["architecture_spec"])
+augmentor = PolicyAugmentor(experiment["augmentation_policy"])
+loss_fn = build_loss_from_spec(experiment["loss_spec"], model=model)
+
+# Training loop
+for batch in train_loader:
+    images = augmentor.apply_to_batch(batch["images"])
+    logits = model(images, batch["clinical"])
+
+    if isinstance(loss_fn, CombinedLoss):
+        result = loss_fn(logits, batch["labels"], images, batch["disc_masks"])
+        loss = result['total']
+    else:
+        loss = loss_fn(logits, batch["labels"])
+
+    loss.backward()
+    optimizer.step()
+```
+
+### Testing
+
+```bash
+# Run all tests (52 unit tests)
+python3 -m pytest tests/unit/test_custom_losses.py -v
+
+# Test specific loss function
+python3 -m pytest tests/unit/test_custom_losses.py::TestWeightedBCELoss -v
+
+# Test loss factory
+python3 -m pytest tests/unit/test_custom_losses.py::TestLossFactory -v
+```
+
+### Files
+
+```
+src/training/
+├── custom_losses.py           # 5 loss function implementations (~650 lines)
+├── loss_factory.py            # Loss factory for ARC integration (~270 lines)
+└── README_PHASE_E_WEEK3.md    # Complete documentation
+
+tests/unit/
+└── test_custom_losses.py      # 52 unit tests (all passing)
+```
+
+### Documentation
+
+- **[src/training/README_PHASE_E_WEEK3.md](src/training/README_PHASE_E_WEEK3.md)** - Complete implementation details
+- **[tests/unit/test_custom_losses.py](tests/unit/test_custom_losses.py)** - Unit test examples
+
+**See Phase E Week 3 documentation for complete details on loss function engineering.**
+
 ---
 
-**Current Status:** Phase E Week 2 - Augmentation Policy Search Complete ✓
+**Current Status:** Phase E Week 3 - Loss Function Engineering Complete ✓
