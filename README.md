@@ -4,7 +4,7 @@ AI-powered optic disc and cup segmentation system for glaucoma detection using d
 
 ## Overview
 
-AcuVue is a medical imaging pipeline that uses U-Net architecture to segment optic disc and cup regions from retinal fundus images. The system is designed for GPU-accelerated training on RunPod (A40) with development managed through GitHub Codespaces.
+AcuVue is a medical imaging pipeline that uses U-Net architecture to segment optic disc and cup regions from retinal fundus images. The system is designed for GPU-accelerated training on RunPod (A40) with development managed through an IDE.
 
 **Technology Stack:**
 - **GPU Compute:** RunPod (PyTorch 2.8 + CUDA 12.8)
