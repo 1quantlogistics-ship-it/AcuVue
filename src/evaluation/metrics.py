@@ -265,3 +265,109 @@ def compute_all_metrics(
         'recall': rec,
         'f1': f1
     }
+
+
+# ============================================================================
+# Classification Metrics
+# ============================================================================
+
+class ClassificationMetrics:
+    """
+    Accumulates and computes classification metrics.
+    
+    Tracks:
+    - Accuracy
+    - Sensitivity (Recall)
+    - Specificity
+    - AUC-ROC
+    - Precision
+    - F1 Score
+    """
+    
+    def __init__(self, num_classes: int = 2):
+        self.num_classes = num_classes
+        self.reset()
+        
+    def reset(self):
+        """Reset accumulated predictions and targets."""
+        self.predictions = []
+        self.targets = []
+        self.probabilities = []
+        
+    def update(
+        self,
+        preds: torch.Tensor,
+        targets: torch.Tensor,
+        probs: Optional[torch.Tensor] = None
+    ):
+        """
+        Update with batch predictions and targets.
+        
+        Args:
+            preds: Predicted class indices (B,)
+            targets: Ground truth class indices (B,)
+            probs: Optional probabilities for AUC calculation (B, C)
+        """
+        self.predictions.extend(preds.cpu().numpy().tolist())
+        self.targets.extend(targets.cpu().numpy().tolist())
+        
+        if probs is not None:
+            if probs.dim() == 2:
+                # Get probability of positive class
+                self.probabilities.extend(probs[:, 1].cpu().numpy().tolist())
+            else:
+                self.probabilities.extend(probs.cpu().numpy().tolist())
+                
+    def compute(self) -> Dict[str, float]:
+        """
+        Compute all metrics.
+        
+        Returns:
+            Dictionary of metric name -> value
+        """
+        preds = np.array(self.predictions)
+        targets = np.array(self.targets)
+        
+        # Basic counts
+        tp = np.sum((preds == 1) & (targets == 1))
+        tn = np.sum((preds == 0) & (targets == 0))
+        fp = np.sum((preds == 1) & (targets == 0))
+        fn = np.sum((preds == 0) & (targets == 1))
+        
+        # Accuracy
+        accuracy = (tp + tn) / (tp + tn + fp + fn + 1e-8)
+        
+        # Sensitivity (Recall)
+        sensitivity = tp / (tp + fn + 1e-8)
+        
+        # Specificity
+        specificity = tn / (tn + fp + 1e-8)
+        
+        # Precision
+        precision = tp / (tp + fp + 1e-8)
+        
+        # F1 Score
+        f1 = 2 * precision * sensitivity / (precision + sensitivity + 1e-8)
+        
+        metrics = {
+            "accuracy": float(accuracy),
+            "sensitivity": float(sensitivity),
+            "specificity": float(specificity),
+            "precision": float(precision),
+            "f1_score": float(f1),
+        }
+        
+        # AUC-ROC (if probabilities available)
+        if self.probabilities:
+            try:
+                from sklearn.metrics import roc_auc_score
+                auc = roc_auc_score(targets, self.probabilities)
+                metrics["auc_roc"] = float(auc)
+            except Exception:
+                metrics["auc_roc"] = 0.0
+                
+        return metrics
+        
+    def __repr__(self) -> str:
+        metrics = self.compute()
+        return f"ClassificationMetrics({metrics})"
