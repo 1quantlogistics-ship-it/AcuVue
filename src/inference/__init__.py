@@ -36,12 +36,25 @@ from .preprocessing import (
     IMAGENET_MEAN,
     IMAGENET_STD,
 )
+from .model_registry import (
+    get_model_path,
+    get_model_config,
+    get_model_metadata,
+    get_available_versions,
+    get_model_info,
+    validate_model_exists,
+    PRODUCTION_MODELS,
+    DEFAULT_MODEL_VERSION,
+)
+from .batch_processor import BatchProcessor, BatchResult
 
 __all__ = [
     # Main classes
     'GlaucomaPredictor',
     'GlaucomaClassifier',
     'PredictionResult',
+    'BatchProcessor',
+    'BatchResult',
 
     # Configuration
     'InferenceConfig',
@@ -55,4 +68,14 @@ __all__ = [
     'unnormalize',
     'IMAGENET_MEAN',
     'IMAGENET_STD',
+
+    # Model registry
+    'get_model_path',
+    'get_model_config',
+    'get_model_metadata',
+    'get_available_versions',
+    'get_model_info',
+    'validate_model_exists',
+    'PRODUCTION_MODELS',
+    'DEFAULT_MODEL_VERSION',
 ]
