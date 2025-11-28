@@ -1,0 +1,62 @@
+# Multi-Head Pipeline Configuration v1
+# =====================================
+#
+# This configuration defines the multi-head inference pipeline for
+# glaucoma detection across different fundus image domains.
+#
+# Architecture:
+#   1. Domain Router: MobileNetV3-Small classifies image source domain
+#   2. Expert Heads: EfficientNet-B0 models trained on specific domains
+#   3. Domain Mapping: Routes domains to appropriate expert heads
+#
+# Usage:
+#   from src.inference import MultiHeadPipeline
+#   pipeline = MultiHeadPipeline.from_config("configs/pipeline_v1.yaml")
+#   result = pipeline.predict("path/to/image.png")
+
+router:
+  checkpoint: models/routing/domain_classifier_v1.pt
+  architecture: mobilenetv3_small
+  domains: [rimone, refuge2, g1020, unknown]
+  input_size: 224
+
+heads:
+  glaucoma_rimone_v1:
+    checkpoint: models/production/glaucoma_efficientnet_b0_v1.pt
+    architecture: efficientnet_b0
+    domains: [rimone]
+    metrics:
+      test_auc: 0.937
+      test_accuracy: 0.765
+      test_sensitivity: 0.744
+      test_specificity: 0.917
+
+  # Future heads (uncomment when trained):
+  # glaucoma_refuge2_v1:
+  #   checkpoint: models/production/glaucoma_refuge2_v1.pt
+  #   architecture: efficientnet_b0
+  #   domains: [refuge2]
+  #   metrics:
+  #     test_auc: null
+  #     test_accuracy: null
+  #
+  # glaucoma_g1020_v1:
+  #   checkpoint: models/production/glaucoma_g1020_v1.pt
+  #   architecture: efficientnet_b0
+  #   domains: [g1020]
+  #   metrics:
+  #     test_auc: null
+  #     test_accuracy: null
+
+domain_mapping:
+  rimone: glaucoma_rimone_v1
+  refuge2: glaucoma_rimone_v1  # Fallback until REFUGE2 head trained
+  g1020: glaucoma_rimone_v1    # Fallback until G1020 head trained
+  unknown: glaucoma_rimone_v1  # Default fallback
+
+inference:
+  device: auto  # 'cuda', 'cpu', or 'auto'
+  input_size: 224
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
