@@ -47,6 +47,17 @@ from .model_registry import (
     DEFAULT_MODEL_VERSION,
 )
 from .batch_processor import BatchProcessor, BatchResult
+from .pipeline import MultiHeadPipeline, PipelineResult
+from .head_registry import (
+    HeadConfig,
+    EXPERT_HEADS,
+    DOMAIN_HEAD_MAPPING,
+    get_head_for_domain,
+    get_available_heads,
+    get_available_domains,
+    register_head,
+    update_domain_mapping,
+)
 
 __all__ = [
     # Main classes
@@ -78,4 +89,16 @@ __all__ = [
     'validate_model_exists',
     'PRODUCTION_MODELS',
     'DEFAULT_MODEL_VERSION',
+
+    # Multi-head pipeline
+    'MultiHeadPipeline',
+    'PipelineResult',
+    'HeadConfig',
+    'EXPERT_HEADS',
+    'DOMAIN_HEAD_MAPPING',
+    'get_head_for_domain',
+    'get_available_heads',
+    'get_available_domains',
+    'register_head',
+    'update_domain_mapping',
 ]
