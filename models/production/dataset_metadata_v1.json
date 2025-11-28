@@ -1,0 +1,69 @@
+{
+  "name": "rimone",
+  "task": "classification",
+  "description": "RIMONE dataset normalized with hospital-based splitting",
+  "source": "/workspace/rimonearchive.zip",
+  "normalized_at": "2025-11-26T20:20:41.149836",
+  "classes": [
+    "normal",
+    "glaucoma"
+  ],
+  "num_classes": 2,
+  "splitting_strategy": "hospital_based",
+  "test_hospitals": [
+    "r1"
+  ],
+  "train_hospitals": [
+    "r3",
+    "r2"
+  ],
+  "statistics": {
+    "total_images": 485,
+    "train_images": 330,
+    "val_images": 57,
+    "test_images": 98,
+    "class_distribution": {
+      "glaucoma": 172,
+      "normal": 313
+    },
+    "split_class_distribution": {
+      "train": {
+        "glaucoma": 141,
+        "normal": 189
+      },
+      "val": {
+        "glaucoma": 19,
+        "normal": 38
+      },
+      "test": {
+        "glaucoma": 12,
+        "normal": 86
+      }
+    },
+    "hospital_distribution": {
+      "r1": 98,
+      "r2": 250,
+      "r3": 137
+    }
+  },
+  "structure": {
+    "format": "arc_classification",
+    "splits": [
+      "train",
+      "val",
+      "test"
+    ],
+    "labels_file": "labels.csv"
+  },
+  "data_leakage_prevention": {
+    "method": "hospital_separation",
+    "description": "No hospital appears in both train and test sets",
+    "test_hospitals": [
+      "r1"
+    ],
+    "train_val_hospitals": [
+      "r3",
+      "r2"
+    ]
+  }
+}
