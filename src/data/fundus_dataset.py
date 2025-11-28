@@ -161,9 +161,13 @@ class FundusDataset(Dataset):
                 if idx in metadata_dict:
                     sample['label'] = metadata_dict[idx].get('label', -1)
                     sample['label_name'] = metadata_dict[idx].get('label_name', 'unknown')
+                    # Add institution/hospital for proper evaluation splitting
+                    sample['institution'] = metadata_dict[idx].get('source_hospital',
+                                            metadata_dict[idx].get('institution', None))
                 else:
                     sample['label'] = -1
                     sample['label_name'] = 'unknown'
+                    sample['institution'] = None
 
                 samples.append(sample)
         else:
