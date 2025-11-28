@@ -1,0 +1,58 @@
+# Router Training Configuration v1
+# Train a lightweight domain classifier for multi-head routing
+#
+# Usage:
+#   python src/training/train_router.py --config configs/router_training_v1.yaml
+
+# Model configuration
+model:
+  # Lightweight backbone for fast inference
+  # Options: mobilenetv3_small_100, mobilenetv3_large_100, efficientnet_b0
+  backbone: mobilenetv3_small_100
+  pretrained: true
+  dropout: 0.2
+  
+  # Domain classes (do not modify unless adding new domains)
+  num_classes: 3  # rimone, refuge, g1020
+
+# Data configuration
+data:
+  # Data roots - map domain names to directories
+  # Modify these paths for your environment
+  roots:
+    rimone: data/processed/rim_one
+    refuge: data/processed/refuge2
+    g1020: data/processed/g1020
+  
+  # Input image size (224 standard for MobileNet/EfficientNet)
+  image_size: 224
+  
+  # Data loading
+  num_workers: 4
+  
+  # Augmentation
+  augment_train: true
+
+# Training configuration
+training:
+  # Fast training - router should train in <1 hour
+  epochs: 20
+  batch_size: 32
+  
+  # Optimizer (AdamW with cosine schedule)
+  optimizer: adamw
+  lr: 0.001
+  weight_decay: 0.01
+  
+  # Learning rate schedule
+  scheduler: cosine
+  warmup_epochs: 0  # No warmup for small dataset
+  min_lr_ratio: 0.01  # Final LR = lr * min_lr_ratio
+
+# Output configuration
+output_dir: outputs/router_v1
+
+# Notes:
+# - Router learns WHERE an image came from, NOT diagnosis
+# - Keep augmentation light to preserve domain signatures
+# - Target >90% domain classification accuracy
