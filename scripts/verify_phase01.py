@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase 01 Verification Script
+Environment Verification Script
 
 Checks that the environment is properly configured for the smoke test:
 - All imports resolve
@@ -244,7 +244,7 @@ def check_checkpoint():
 
 def main():
     """Run all verification checks."""
-    print_header("Phase 01 Verification Script")
+    print_header("Environment Verification Script")
     print_info(f"Project root: {project_root}")
 
     results = {
@@ -269,7 +269,7 @@ def main():
     print()
 
     if all_passed:
-        print_success("All checks passed! Ready for Phase 01 training.")
+        print_success("All checks passed! Ready for training.")
         print_info("Run: python src/training/train_segmentation.py")
         return 0
     else:

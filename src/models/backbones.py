@@ -5,8 +5,6 @@ Backbone Architectures for Medical Image Classification
 Implements backbone alternatives for AcuVue glaucoma classification.
 Each backbone returns feature embeddings (not final classifications).
 
-Part of ARC Phase E: Architecture Grammar System
-Dev 2 implementation - Week 1
 
 Supported Backbones:
 - EfficientNet-B0 (current baseline)

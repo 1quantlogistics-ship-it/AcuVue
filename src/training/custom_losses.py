@@ -1,24 +1,11 @@
 """
-Custom Loss Functions for Medical Image Classification
-=======================================================
+Custom loss functions for medical image classification.
 
-Implements advanced loss functions optimized for ARC's training experiments.
-Standard cross-entropy is insufficient for medical imaging due to:
+Addresses common challenges in medical imaging:
 - Class imbalance (healthy vs diseased)
-- High cost of false negatives (missing disease)
-- Need to optimize AUC instead of accuracy
-- Requirement to maintain diagnostic attention (DRI constraint)
-
-Part of ARC Phase E Week 3: Loss Function Engineering
-Dev 2 implementation
-
-Loss Functions:
-1. WeightedBCELoss - Adaptive class weights for imbalanced datasets
-2. AsymmetricFocalLoss - Reduces false negatives (higher penalty for missing positives)
-3. AUCSurrogateLoss - Directly optimizes AUC via pairwise ranking
-4. DRIRegularizer - Differentiable regularization for attention constraint
-
-Each loss is composable and can be combined with DRIRegularizer.
+- High cost of false negatives
+- AUC optimization
+- Attention constraints (DRI)
 """
 
 import torch
@@ -478,73 +465,13 @@ class CombinedLoss(nn.Module):
         }
 
 
-# Example usage
 if __name__ == '__main__':
-    """Demonstrate custom loss functions."""
-
-    print("=" * 80)
-    print("Custom Loss Functions for Medical Image Classification")
-    print("=" * 80)
-
-    # Create dummy data
+    # Quick test
     batch_size = 4
-    num_classes = 2
-
-    logits = torch.randn(batch_size, num_classes)
+    logits = torch.randn(batch_size, 2)
     labels = torch.randint(0, 2, (batch_size,))
 
-    print(f"\nDummy data: batch_size={batch_size}, num_classes={num_classes}")
-    print(f"Labels: {labels.tolist()}")
-
-    # Test 1: WeightedBCELoss
-    print("\n" + "=" * 80)
-    print("Test 1: WeightedBCELoss")
-    print("=" * 80)
-
-    # Compute weights
-    pos_weight, neg_weight = WeightedBCELoss.compute_weights_from_labels(labels)
-    print(f"Computed weights: pos_weight={pos_weight:.2f}, neg_weight={neg_weight:.2f}")
-
-    loss_fn = WeightedBCELoss(pos_weight=pos_weight, neg_weight=neg_weight)
-    loss = loss_fn(logits, labels)
-    print(f"Weighted BCE Loss: {loss.item():.4f}")
-    print("✓ WeightedBCELoss working")
-
-    # Test 2: AsymmetricFocalLoss
-    print("\n" + "=" * 80)
-    print("Test 2: AsymmetricFocalLoss")
-    print("=" * 80)
-
-    loss_fn = AsymmetricFocalLoss(gamma_pos=2.0, gamma_neg=0.5)
-    loss = loss_fn(logits, labels)
-    print(f"Asymmetric Focal Loss: {loss.item():.4f}")
-    print("✓ AsymmetricFocalLoss working")
-
-    # Test 3: AUCSurrogateLoss
-    print("\n" + "=" * 80)
-    print("Test 3: AUCSurrogateLoss")
-    print("=" * 80)
-
-    loss_fn = AUCSurrogateLoss(margin=1.0)
-    loss = loss_fn(logits, labels)
-    print(f"AUC Surrogate Loss: {loss.item():.4f}")
-    print("✓ AUCSurrogateLoss working")
-
-    # Test 4: Gradient flow
-    print("\n" + "=" * 80)
-    print("Test 4: Gradient Flow")
-    print("=" * 80)
-
-    logits_with_grad = torch.randn(batch_size, num_classes, requires_grad=True)
-
-    loss_fn = AsymmetricFocalLoss()
-    loss = loss_fn(logits_with_grad, labels)
-    loss.backward()
-
-    print(f"Loss: {loss.item():.4f}")
-    print(f"Gradient norm: {logits_with_grad.grad.norm().item():.4f}")
-    print("✓ Gradients flow correctly")
-
-    print("\n" + "=" * 80)
-    print("All loss functions working correctly!")
-    print("=" * 80)
+    for loss_cls in [WeightedBCELoss, AsymmetricFocalLoss, AUCSurrogateLoss]:
+        loss_fn = loss_cls()
+        loss = loss_fn(logits, labels)
+        print(f"{loss_cls.__name__}: {loss.item():.4f}")

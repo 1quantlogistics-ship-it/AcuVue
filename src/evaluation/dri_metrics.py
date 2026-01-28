@@ -5,8 +5,6 @@ DRI (Disc Relevance Index) Metrics for Augmentation Policy Validation
 Computes whether model attention focuses on diagnostically relevant regions
 (optic disc) after applying augmentation policies.
 
-Part of ARC Phase E Week 2: Augmentation Policy Search
-Dev 2 implementation
 
 DRI Calculation:
 1. Generate Grad-CAM attention heatmap from model prediction
@@ -361,7 +359,7 @@ def validate_policy_dri(
     """
     Validate an augmentation policy by checking if it maintains DRI.
 
-    This is the main function that ARC's Critic agent will use to
+    This is the main function that the validator will use to
     validate proposed augmentation policies.
 
     Args:

@@ -1,12 +1,7 @@
 """
-Fast Augmentation Policy Evaluator
-===================================
+Fast augmentation policy evaluator.
 
-Evaluates augmentation policies using fast 5-epoch proxy training instead of
-full 50-epoch training. Enables ARC to rapidly iterate through policy search.
-
-Part of ARC Phase E Week 2: Augmentation Policy Search
-Dev 2 implementation
+Evaluates augmentation policies using 5-epoch proxy training for rapid iteration.
 
 Evaluation Protocol:
 1. Train model for 5 epochs with proposed augmentation policy
@@ -443,7 +438,7 @@ def rank_policies_by_fitness(
     """
     Rank augmentation policies by fitness score.
 
-    This is the main function ARC's Explorer agent will use for policy search.
+    This is the main function the optimizer will use for policy search.
 
     Args:
         policies: List of augmentation policies to evaluate

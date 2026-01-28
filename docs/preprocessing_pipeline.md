@@ -1,8 +1,8 @@
-# Preprocessing Pipeline - Phase 03e
+# Preprocessing Pipeline
 
 ## Overview
 
-This document describes the preprocessing pipeline for fundus image datasets used in the AcuVue glaucoma classification project. The pipeline was audited and revised in **Phase 03e** to remove CLAHE and implement ImageNet normalization for improved transfer learning with pretrained models.
+This document describes the preprocessing pipeline for fundus image datasets used in the AcuVue glaucoma classification project. The pipeline uses ImageNet normalization for improved transfer learning with pretrained models.
 
 ## Pipeline Architecture
 
@@ -112,7 +112,7 @@ Applied only to training split to improve generalization:
 - **Rationale**: Standard neural network input range
 
 ### 6. ImageNet Normalization (Optional)
-- **Status**: **Enabled** (as of Phase 03e)
+- **Status**: **Enabled** 
 - **Formula**: `(pixel - mean) / std`
 - **Parameters**:
   - Mean (RGB): `[0.485, 0.456, 0.406]`
@@ -124,10 +124,10 @@ Applied only to training split to improve generalization:
   - Standard ImageNet normalization from torchvision
 - **Configuration**: `data.use_imagenet_norm: true` in config
 
-## Phase 03e Changes
+##  Changes
 
 ### Motivation
-Phase 03d experiments (Revisions A, B, C) failed to improve G1020 test performance (AUC ~0.53). Preprocessing audit revealed two critical issues:
+ experiments (Revisions A, B, C) failed to improve G1020 test performance (AUC ~0.53). Preprocessing audit revealed two critical issues:
 
 1. **CLAHE Contamination**: CLAHE was applied during dataset generation, introducing pixel-level transformations incompatible with ImageNet normalization
 2. **Missing ImageNet Normalization**: Pretrained models expect ImageNet-normalized inputs, but we were providing [0, 1] range
@@ -174,7 +174,7 @@ if self.use_imagenet_norm:
 
 **Training Script Integration** ([src/training/train_classification.py:320-349](../src/training/train_classification.py#L320-L349)):
 ```python
-# Extract ImageNet normalization flag from config (Phase 03e)
+# Extract ImageNet normalization flag from config ()
 use_imagenet_norm = config.data.get('use_imagenet_norm', False)
 
 train_dataset = FundusDataset(
@@ -238,7 +238,7 @@ In your Hydra config (e.g., [configs/phase03e.yaml](../configs/phase03e.yaml)):
 
 ```yaml
 data:
-  use_imagenet_norm: true  # Enable ImageNet normalization (Phase 03e)
+  use_imagenet_norm: true  # Enable ImageNet normalization ()
   preprocessing_version: "v3_no_clahe_imagenet_norm"
 ```
 
@@ -252,22 +252,22 @@ data:
 
 | Version | CLAHE | ImageNet Norm | Status | Datasets |
 |---------|-------|---------------|--------|----------|
-| v1 | ✅ Yes | ❌ No | **Deprecated** | Phase 03c, 03d |
+| v1 | ✅ Yes | ❌ No | **Deprecated** | , 03d |
 | v2 | ❌ No | ❌ No | **Legacy** | Testing only |
-| v3 | ❌ No | ✅ Yes | **Current** | Phase 03e+ |
+| v3 | ❌ No | ✅ Yes | **Current** | + |
 
 **Current Version**: `v3_no_clahe_imagenet_norm`
 
 ## Expected Impact
 
-### Benefits of Phase 03e Changes
+### Benefits of  Changes
 1. **Better Transfer Learning**: ImageNet normalization aligns input distribution with pretrained model expectations
 2. **Cleaner Features**: Removing CLAHE prevents local contrast artifacts
 3. **More Stable Gradients**: Proper normalization improves gradient flow during training
 4. **Improved Generalization**: Transfer learning from ImageNet features should generalize better to fundus images
 
 ### Expected Performance Improvements
-- G1020 test AUC: Target >0.60 (baseline: 0.53 from Phase 03d)
+- G1020 test AUC: Target >0.60 (baseline: 0.53 from )
 - Better class separation on minority class (glaucoma)
 - Reduced overfitting due to better feature extraction
 
@@ -276,14 +276,14 @@ data:
 ```python
 from data.fundus_dataset import FundusDataset
 
-# Phase 03e: ImageNet normalization enabled
+# : ImageNet normalization enabled
 dataset = FundusDataset(
     data_root='data/processed/combined_v2',
     split='train',
     task='classification',
     image_size=512,
     augment=True,
-    use_imagenet_norm=True  # Phase 03e
+    use_imagenet_norm=True  # 
 )
 
 # Load sample
@@ -301,9 +301,9 @@ print(f"Label: {label}")  # 0 (normal) or 1 (glaucoma)
 
 ## Maintenance
 
-**Last Updated**: 2025-01-14 (Phase 03e)
+**Last Updated**: 2025-01-14 ()
 **Maintained By**: AcuVue Development Team
-**Next Review**: After Phase 03e training results
+**Next Review**: After  training results
 
 ---
 

@@ -224,7 +224,7 @@ class G1020Preprocessor:
             image_resized = cv2.resize(image, (self.target_size, self.target_size),
                                       interpolation=cv2.INTER_LANCZOS4)
 
-            # CLAHE removed (Phase 03e): Preprocessing audit determined CLAHE is incompatible
+            # CLAHE removed Preprocessing audit determined CLAHE is incompatible
             # with ImageNet normalization and reduces transfer learning effectiveness
 
             # Process mask if available

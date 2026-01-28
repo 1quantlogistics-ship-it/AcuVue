@@ -2,11 +2,9 @@
 Policy-Based Augmentation for AutoAugment-style Search
 =======================================================
 
-Applies augmentation policies proposed by ARC's Explorer agent.
+Applies augmentation policies proposed by the optimizer.
 Each policy is a sequence of operations with probabilities and magnitudes.
 
-Part of ARC Phase E Week 2: Augmentation Policy Search
-Dev 2 implementation
 
 Policy Format:
 [

@@ -1,5 +1,5 @@
 """
-Phase 03 classification training script with validation loop, metrics tracking, and checkpointing.
+Classification training script with validation loop, metrics tracking, and checkpointing.
 
 Features:
 - Binary glaucoma classification
@@ -303,7 +303,7 @@ def main(config: DictConfig):
     """Main training function."""
     # Print config
     logger.info("\n" + "="*60)
-    logger.info("Phase 03: Classification Training")
+    logger.info("Classification Training")
     logger.info("="*60)
     logger.info("\nConfiguration:")
     logger.info(OmegaConf.to_yaml(config))
@@ -317,7 +317,7 @@ def main(config: DictConfig):
     # Create datasets
     logger.info("\nLoading datasets...")
 
-    # Extract ImageNet normalization flag from config (Phase 03e)
+    # Extract ImageNet normalization flag from config 
     use_imagenet_norm = config.data.get('use_imagenet_norm', False)
 
     train_dataset = FundusDataset(
@@ -355,12 +355,12 @@ def main(config: DictConfig):
         logger.info(f"  {split_name}: {dist['counts']} ({dist['percentages'][0]:.1f}% / {dist['percentages'][1]:.1f}%)")
 
     # Create dataloaders with optional sampling strategies
-    # Phase 03d: Support for balanced dataset sampler
+    # Support for balanced dataset sampler
     use_balanced_sampler = config.data.get('use_balanced_sampler', False)
     use_weighted_sampler = config.training.get('use_weighted_sampler', False)
 
     if use_balanced_sampler:
-        # Phase 03d: Dataset-aware balanced sampling
+        # Dataset-aware balanced sampling
         sampler_mode = config.data.get('sampler_mode', 'balanced')
         logger.info(f"\nUsing dataset-aware sampler: {sampler_mode}")
         train_sampler = get_sampler(
@@ -429,11 +429,11 @@ def main(config: DictConfig):
     )
 
     # Create loss function
-    # Phase 03d: Support for focal loss and other loss functions
+    # Support for focal loss and other loss functions
     loss_type = config.training.get('loss_type', 'ce')  # 'ce', 'focal', 'weighted_focal'
 
     if loss_type in ['focal', 'weighted_focal']:
-        # Phase 03d: Focal loss for sensitivity/specificity balance
+        # Focal loss for sensitivity/specificity balance
         logger.info(f"\nUsing {loss_type} loss function")
 
         # Compute class counts for weighted focal loss

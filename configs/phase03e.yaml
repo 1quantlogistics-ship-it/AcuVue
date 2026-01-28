@@ -1,11 +1,9 @@
-# Phase 03e: Preprocessing Audit - ImageNet Normalization
+# ImageNet normalization configuration
 # ==========================================================
 #
 # Background:
-# Phase 03d (all revisions A, B, C) failed to improve G1020 performance (AUC ~0.53).
 # Preprocessing audit revealed CLAHE contamination across all datasets.
 #
-# Phase 03e Changes:
 # 1. Removed CLAHE from all preprocessing scripts
 # 2. Regenerated all datasets from scratch (combined_v2)
 # 3. Implemented ImageNet normalization for EfficientNet-B0 transfer learning
@@ -30,7 +28,7 @@ defaults:
   - phase03d_baseline
 
 data:
-  use_imagenet_norm: true  # Enable ImageNet normalization (Phase 03e)
+  use_imagenet_norm: true  # Enable ImageNet normalization 
   preprocessing_version: "v3_no_clahe_imagenet_norm"
 
 logging:
@@ -44,7 +42,7 @@ logging:
       - clean_datasets
       - combined_v2
     notes: |
-      Phase 03e: Preprocessing audit complete.
+      Preprocessing: Preprocessing audit complete.
 
       Changes:
       - CLAHE removed from all preprocessing scripts

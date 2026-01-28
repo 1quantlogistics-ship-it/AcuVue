@@ -5,8 +5,6 @@ Multi-Dataset Manager
 Manages training across multiple fundus datasets with different characteristics.
 Enables curriculum learning by ordering datasets by difficulty.
 
-Part of ARC Phase E Week 4: Cross-Dataset Curriculum Learning
-Dev 2 implementation
 
 Supported Datasets:
 - REFUGE: Large, balanced, high quality (EASY)

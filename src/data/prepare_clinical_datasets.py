@@ -179,7 +179,7 @@ class REFUGE2Preprocessor(DatasetPreprocessor):
             if image.shape[0] != self.target_size or image.shape[1] != self.target_size:
                 image = cv2.resize(image, (self.target_size, self.target_size))
 
-            # CLAHE removed (Phase 03e): Preprocessing audit determined CLAHE is incompatible
+            # CLAHE removed Preprocessing audit determined CLAHE is incompatible
             # with ImageNet normalization and reduces transfer learning effectiveness
 
             # Convert and save mask
@@ -365,7 +365,7 @@ class RIMONEPreprocessor(DatasetPreprocessor):
             if image.shape[0] != self.target_size or image.shape[1] != self.target_size:
                 image = cv2.resize(image, (self.target_size, self.target_size))
 
-            # CLAHE removed (Phase 03e): Preprocessing audit determined CLAHE is incompatible
+            # CLAHE removed Preprocessing audit determined CLAHE is incompatible
             # with ImageNet normalization and reduces transfer learning effectiveness
 
             # Save

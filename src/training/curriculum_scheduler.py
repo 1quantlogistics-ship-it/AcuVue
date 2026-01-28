@@ -5,8 +5,6 @@ Curriculum Scheduler
 Schedules curriculum learning progression across multiple datasets.
 Implements various curriculum strategies for gradual difficulty increase.
 
-Part of ARC Phase E Week 4: Cross-Dataset Curriculum Learning
-Dev 2 implementation
 
 Curriculum Strategies:
 - pure_sequential: Train on one dataset at a time (easy → hard)

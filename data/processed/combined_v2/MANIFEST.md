@@ -3,7 +3,7 @@
 ## Overview
 
 **Dataset Name**: combined_v2
-**Version**: Phase 03c.C Multi-Dataset Fusion
+**Version**: v2 Multi-Dataset Fusion
 **Preprocessing Version**: v3_no_clahe_imagenet_norm
 **Generated**: 2025-01-14
 **Total Samples**: 1905
@@ -16,7 +16,7 @@ This dataset combines three public fundus image datasets for glaucoma classifica
 - **REFUGE2**: REFUGE Challenge 2018 training set
 - **G1020**: Large-scale Chinese multi-center glaucoma dataset
 
-The dataset was created as part of Phase 03c.C to maximize training data diversity and improve model generalization across different imaging equipment, populations, and clinical settings.
+The dataset was created as part of dataset preparation to maximize training data diversity and improve model generalization across different imaging equipment, populations, and clinical settings.
 
 ## Dataset Composition
 
@@ -63,7 +63,7 @@ Formula: `weight = total / (2 * class_count)`, normalized to sum to 1
 2. **Color Space**: BGR → RGB conversion
 3. **Resize**: 512×512 pixels (bicubic interpolation)
 4. **Normalization**: Pixel values [0, 255] → [0, 1]
-5. **ImageNet Normalization** (optional, enabled in Phase 03e):
+5. **ImageNet Normalization** (optional):
    - Mean (RGB): [0.485, 0.456, 0.406]
    - Std (RGB): [0.229, 0.224, 0.225]
 
@@ -79,7 +79,7 @@ Formula: `weight = total / (2 * class_count)`, normalized to sum to 1
 
 ### CLAHE Status
 
-**CLAHE Removed in Phase 03e**: CLAHE (Contrast Limited Adaptive Histogram Equalization) was previously applied to the green channel during preprocessing in Phase 03c/03d. It was **removed** in Phase 03e after an audit revealed it was incompatible with ImageNet normalization and reduced transfer learning effectiveness.
+**CLAHE Removed in **: CLAHE (Contrast Limited Adaptive Histogram Equalization) was previously applied to the green channel during preprocessing in  It was **removed** in  after an audit revealed it was incompatible with ImageNet normalization and reduced transfer learning effectiveness.
 
 **Current Status**: No CLAHE applied. All images processed with basic resizing and normalization only.
 
@@ -109,7 +109,7 @@ Contains sample-level annotations:
 ```json
 {
   "dataset": "combined_v2",
-  "version": "Phase 03c.C Multi-Dataset Fusion",
+  "version": "v2 Multi-Dataset Fusion",
   "source_datasets": ["rim_one", "refuge2", "g1020"],
   "num_samples": 1905,
   "num_train": 1394,
@@ -201,7 +201,7 @@ Computed on training split (BEFORE ImageNet normalization):
 ```python
 from data.fundus_dataset import FundusDataset
 
-# Load training set with ImageNet normalization (Phase 03e)
+# Load training set with ImageNet normalization ()
 dataset = FundusDataset(
     data_root='data/processed/combined_v2',
     split='train',
@@ -219,7 +219,7 @@ print(f"Label: {label}")                # 0 (normal) or 1 (glaucoma)
 
 ## Quality Control
 
-### Phase 03e Preprocessing Audit
+###  Preprocessing Audit
 
 **Date**: 2025-01-14
 
@@ -249,12 +249,12 @@ REFUGE2 validation and test sets are excluded because labels are not publicly av
 
 ## Changelog
 
-### Phase 03c.C (2025-01-12)
+###  (2025-01-12)
 - Initial dataset fusion
 - Combined RIM-ONE + REFUGE2 + G1020
 - Applied CLAHE preprocessing
 
-### Phase 03e (2025-01-14)
+###  (2025-01-14)
 - **BREAKING**: Removed CLAHE from preprocessing
 - Regenerated all datasets from scratch
 - Added ImageNet normalization support

@@ -2,7 +2,7 @@
 Unit Tests for Custom Loss Functions
 =====================================
 
-Tests for Phase E Week 3: Loss Function Engineering
+Tests for custom loss functions
 
 Covers:
 - WeightedBCELoss with automatic weight computation

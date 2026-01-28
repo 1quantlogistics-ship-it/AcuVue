@@ -5,8 +5,6 @@ Safe Augmentation Operations for Medical Imaging
 Defines a library of safe augmentation operations for fundus photography.
 Standard ImageNet augmentations can destroy diagnostic signal in medical images.
 
-Part of ARC Phase E Week 2: Augmentation Policy Search
-Dev 2 implementation
 
 SAFE Operations (preserves diagnostic features):
 - Geometric: Rotation, flip, scale, translation

@@ -1,29 +1,8 @@
 """
-Domain Adaptation Components
-=============================
+Domain adaptation components for cross-dataset training.
 
-Implements domain adaptation techniques for cross-dataset training.
-Enables models to learn domain-invariant features across different datasets.
-
-Part of ARC Phase E Week 4: Cross-Dataset Curriculum Learning
-Dev 2 implementation
-
-Key Components:
-- GradientReversalLayer: Reverses gradients for adversarial training
-- DomainClassifier: Discriminates between source/target domains
-- DomainAdversarialLoss: Combined task + domain loss
-
-Usage:
-    >>> from training.domain_adaptation import GradientReversalLayer, DomainClassifier
-    >>>
-    >>> # Add to model
-    >>> self.grl = GradientReversalLayer(lambda_=0.1)
-    >>> self.domain_classifier = DomainClassifier(feature_dim=512, num_domains=3)
-    >>>
-    >>> # In forward pass
-    >>> features = self.encoder(images)
-    >>> reversed_features = self.grl(features)
-    >>> domain_logits = self.domain_classifier(reversed_features)
+Implements gradient reversal and domain-adversarial training to learn
+domain-invariant features across different fundus imaging datasets.
 """
 
 import torch
@@ -320,113 +299,14 @@ class DomainAdaptationWrapper(nn.Module):
         return task_logits
 
 
-# Example usage
 if __name__ == '__main__':
-    """Demonstrate domain adaptation components."""
-
-    print("=" * 80)
-    print("Domain Adaptation Components Demo")
-    print("=" * 80)
-
-    # Test 1: Gradient Reversal Layer
-    print("\n1. Gradient Reversal Layer")
+    # Quick test
     grl = GradientReversalLayer(lambda_=1.0)
-
     x = torch.randn(4, 512, requires_grad=True)
     y = grl(x)
+    y.sum().backward()
+    print(f"GRL: forward identity={torch.allclose(y, x)}, grad reversed={(x.grad < 0).all()}")
 
-    print(f"Input shape: {x.shape}")
-    print(f"Output shape: {y.shape}")
-    print(f"Forward pass: output == input? {torch.allclose(y, x)}")
-
-    # Test gradient reversal
-    loss = y.sum()
-    loss.backward()
-    print(f"Gradient reversal: grad is negative? {(x.grad < 0).all().item()}")
-    print("✓ GRL working")
-
-    # Test 2: Domain Classifier
-    print("\n2. Domain Classifier")
-    domain_clf = DomainClassifier(
-        feature_dim=512,
-        num_domains=3,  # REFUGE, ORIGA, Drishti
-        hidden_dim=256
-    )
-
-    features = torch.randn(16, 512)
-    domain_logits = domain_clf(features)
-
-    print(f"Features shape: {features.shape}")
-    print(f"Domain logits shape: {domain_logits.shape}")
-    print(f"Domain predictions: {domain_logits.argmax(dim=1)[:5]}")
-    print("✓ Domain classifier working")
-
-    # Test 3: Domain Adversarial Loss
-    print("\n3. Domain Adversarial Loss")
-
-    task_loss_fn = nn.BCEWithLogitsLoss()
-    da_loss = DomainAdversarialLoss(
-        task_loss_fn=task_loss_fn,
-        lambda_domain=0.1,
-        schedule_lambda=True
-    )
-
-    # Simulate batch
-    batch_size = 16
-    task_logits = torch.randn(batch_size, 1)
-    task_labels = torch.randint(0, 2, (batch_size,)).float().unsqueeze(1)
-    domain_logits = torch.randn(batch_size, 3)
-    domain_labels = torch.randint(0, 3, (batch_size,))
-
-    result = da_loss(
-        task_logits, task_labels,
-        domain_logits, domain_labels,
-        epoch=10, max_epochs=50
-    )
-
-    print(f"Total loss: {result['total'].item():.4f}")
-    print(f"Task loss: {result['task'].item():.4f}")
-    print(f"Domain loss: {result['domain'].item():.4f}")
-    print(f"Lambda (scheduled): {result['lambda']:.4f}")
-    print("✓ Domain adversarial loss working")
-
-    # Test 4: Domain label computation
-    print("\n4. Domain Label Computation")
-
-    batch_datasets_test = ["REFUGE", "ORIGA", "REFUGE", "Drishti", "ORIGA"]
-    dataset_to_id = {"REFUGE": 0, "ORIGA": 1, "Drishti": 2}
-
-    domain_labels_test = compute_domain_labels(batch_datasets_test, dataset_to_id)
-    print(f"Batch datasets: {batch_datasets_test}")
-    print(f"Domain labels: {domain_labels_test}")
-    print("✓ Domain label computation working")
-
-    # Test 5: Lambda scheduling
-    print("\n5. Lambda Scheduling Over Training")
-
-    max_epochs = 50
-    lambdas = []
-
-    # Create consistent batch for scheduling test
-    test_task_logits = torch.randn(8, 1)
-    test_task_labels = torch.randint(0, 2, (8,)).float().unsqueeze(1)
-    test_domain_logits = torch.randn(8, 3)
-    test_domain_labels = torch.randint(0, 3, (8,))
-
-    for epoch in range(0, max_epochs, 5):
-        result = da_loss(
-            test_task_logits, test_task_labels,
-            test_domain_logits, test_domain_labels,
-            epoch=epoch, max_epochs=max_epochs
-        )
-        lambdas.append(result['lambda'])
-
-    print("Epoch → Lambda:")
-    for epoch, lam in zip(range(0, max_epochs, 5), lambdas):
-        print(f"  Epoch {epoch:2d}: {lam:.4f}")
-
-    print("\n✓ Lambda increases progressively (domain adaptation strengthens)")
-
-    print("\n" + "=" * 80)
-    print("Domain Adaptation Demo Complete!")
-    print("=" * 80)
+    domain_clf = DomainClassifier(feature_dim=512, num_domains=3)
+    logits = domain_clf(torch.randn(8, 512))
+    print(f"Domain classifier: output shape={logits.shape}")
