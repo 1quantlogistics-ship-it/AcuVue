@@ -5,8 +5,6 @@ Unit Tests for Architecture Grammar System
 Comprehensive test suite for fusion modules, backbones, and model factory.
 All tests are CPU-compatible (no GPU required).
 
-Part of ARC Phase E: Architecture Grammar System
-Dev 2 implementation - Week 1
 
 Test Coverage:
 1. Fusion modules: Shape correctness, gradient flow

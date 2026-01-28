@@ -2,7 +2,7 @@
 Unit Tests for Augmentation Policy System
 ==========================================
 
-Tests for Phase E Week 2: Augmentation Policy Search
+Tests for augmentation policy
 
 Covers:
 - Safe augmentation operations

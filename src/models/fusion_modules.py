@@ -5,8 +5,6 @@ Fusion Modules for Multi-Modal Medical Image Classification
 Implements various fusion strategies for combining CNN image features with
 structured clinical indicators (CDR, ISNT, vessel density, entropy).
 
-Part of ARC Phase E: Architecture Grammar System
-Dev 2 implementation - Week 1
 
 Fusion Strategies:
 - FiLM: Feature-wise Linear Modulation (clinical indicators modulate CNN features)

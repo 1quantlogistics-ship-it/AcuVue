@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ImageNet Normalization Validation Script - Phase 03e
+ImageNet Normalization Validation
 ======================================================
 
 Validates that ImageNet normalization is correctly applied to fundus images.
@@ -78,7 +78,7 @@ def validate_normalization():
     batch_size = 32
 
     print("=" * 70)
-    print("ImageNet Normalization Validation - Phase 03e")
+    print("ImageNet Normalization Validation")
     print("=" * 70)
     print()
 
@@ -162,7 +162,7 @@ def validate_normalization():
 
     with open(output_path, 'w') as f:
         f.write("=" * 70 + "\n")
-        f.write("ImageNet Normalization Validation - Phase 03e\n")
+        f.write("ImageNet Normalization Validation\n")
         f.write("=" * 70 + "\n\n")
 
         f.write("Test Configuration:\n")

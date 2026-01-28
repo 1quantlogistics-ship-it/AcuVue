@@ -1,12 +1,5 @@
 """
-Phase 02 training script with validation loop, metrics tracking, and checkpointing.
-
-Features:
-- Train/val/test splits
-- Multiple metrics (Dice, IoU, accuracy, sensitivity, specificity)
-- Best model checkpointing
-- Training history logging
-- Configurable via Hydra
+Training script with validation loop, metrics tracking, and checkpointing.
 """
 import os
 import sys
@@ -155,9 +148,7 @@ def validate_epoch(
 def train(cfg: DictConfig) -> None:
     """Main training function."""
     # Print configuration
-    logger.info("=" * 70)
-    logger.info("Phase 02: Baseline Training with Validation")
-    logger.info("=" * 70)
+    logger.info("Starting training...")
     logger.info("\nConfiguration:")
     logger.info(OmegaConf.to_yaml(cfg))
 
@@ -225,9 +216,7 @@ def train(cfg: DictConfig) -> None:
     }
 
     # Training loop
-    logger.info(f"\n{'=' * 70}")
-    logger.info(f"Starting training for {cfg.training.epochs} epochs")
-    logger.info(f"{'=' * 70}\n")
+    logger.info(f"Training for {cfg.training.epochs} epochs")
 
     best_val_dice = 0.0
 
@@ -277,15 +266,13 @@ def train(cfg: DictConfig) -> None:
 
         if is_best:
             best_val_dice = val_metrics['dice']
-            logger.info(f"  ✓ New best model! Val Dice: {best_val_dice:.4f}")
+            logger.info(f"  New best model! Val Dice: {best_val_dice:.4f}")
 
     # Save training history
     checkpoint_manager.save_training_history(history)
 
     # Final evaluation on test set
-    logger.info(f"\n{'=' * 70}")
-    logger.info("Final Evaluation on Test Set")
-    logger.info(f"{'=' * 70}\n")
+    logger.info("\nEvaluating on test set...")
 
     # Load best model
     best_checkpoint_path = checkpoint_manager.get_best_checkpoint_path()
@@ -314,14 +301,9 @@ def train(cfg: DictConfig) -> None:
     with open(results_path, 'w') as f:
         json.dump(test_results, f, indent=2)
 
-    logger.info(f"\n✓ Test results saved: {results_path}")
-
-    logger.info("\n" + "=" * 70)
-    logger.info("Phase 02 Training: COMPLETE")
-    logger.info("=" * 70)
-    logger.info(f"\nBest model saved to: {best_checkpoint_path}")
-    logger.info(f"Best val_dice: {best_val_dice:.4f}")
-    logger.info(f"Test dice: {test_metrics['dice']:.4f}")
+    logger.info(f"Test results saved: {results_path}")
+    logger.info(f"Best model: {best_checkpoint_path}")
+    logger.info(f"Best val dice: {best_val_dice:.4f}, Test dice: {test_metrics['dice']:.4f}")
 
 
 if __name__ == "__main__":

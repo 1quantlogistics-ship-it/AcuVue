@@ -1,4 +1,4 @@
-# Phase 01: Smoke Test Configuration
+# Smoke test configuration
 # Purpose: Verify pipeline runs end-to-end with minimal data
 
 training:

@@ -3,10 +3,8 @@ Curriculum Learning Factory
 ============================
 
 Central factory for building curriculum schedules from specifications.
-Enables ARC's Explorer agent to propose curriculum learning strategies.
+Enables the optimizer to propose curriculum learning strategies.
 
-Part of ARC Phase E Week 4: Cross-Dataset Curriculum Learning
-Dev 2 implementation
 
 Usage:
     >>> spec = {

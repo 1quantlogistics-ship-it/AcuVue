@@ -5,8 +5,6 @@ Cross-Dataset Evaluator
 Evaluates model performance across multiple datasets to measure generalization.
 Quantifies domain shift and cross-dataset transfer learning effectiveness.
 
-Part of ARC Phase E Week 4: Cross-Dataset Curriculum Learning
-Dev 2 implementation
 
 Usage:
     >>> evaluator = CrossDatasetEvaluator(model, datasets_dict)

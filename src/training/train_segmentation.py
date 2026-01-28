@@ -1,7 +1,7 @@
 """
 Training script for optic disc/cup segmentation using U-Net.
 
-Phase 01: Smoke test with dummy data and single epoch.
+Smoke test with dummy data and single epoch.
 """
 import os
 import sys
@@ -69,7 +69,7 @@ def train(cfg: DictConfig) -> None:
     """
     # Print configuration
     logger.info("=" * 60)
-    logger.info("Phase 01: Smoke Test - Segmentation Training")
+    logger.info("Smoke Test - Segmentation Training")
     logger.info("=" * 60)
     logger.info("\nConfiguration:")
     logger.info(OmegaConf.to_yaml(cfg))
@@ -186,7 +186,7 @@ def train(cfg: DictConfig) -> None:
         logger.error("✗ Checkpoint save failed!")
 
     logger.info("\n" + "=" * 60)
-    logger.info("Phase 01 Smoke Test: COMPLETE")
+    logger.info("Training complete")
     logger.info("=" * 60)
 
 

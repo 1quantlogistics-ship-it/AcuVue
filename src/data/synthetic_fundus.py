@@ -1,5 +1,5 @@
 """
-Synthetic fundus image generator for Phase 02-Lite.
+Synthetic fundus image generator .
 
 Generates anatomically plausible retinal fundus images with optic disc and cup
 segmentation masks. This serves as a bridge solution until real RIM-ONE/REFUGE

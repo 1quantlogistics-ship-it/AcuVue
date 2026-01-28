@@ -5,8 +5,6 @@ Augmentation Visualization Tool
 Visualizes the effects of augmentation policies on fundus images.
 Useful for debugging policies and understanding their impact.
 
-Part of ARC Phase E Week 2: Augmentation Policy Search
-Dev 2 implementation
 
 Features:
 - Side-by-side comparison of original vs augmented images

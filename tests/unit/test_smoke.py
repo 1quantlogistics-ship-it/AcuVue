@@ -1,5 +1,5 @@
 """
-Unit tests for Phase 01 smoke test.
+Unit tests for smoke test.
 
 Tests core functionality of data pipeline, preprocessing, and model.
 """

@@ -3,10 +3,8 @@ Loss Function Factory
 =====================
 
 Central factory for building loss functions from specifications.
-Enables ARC's Explorer agent to propose different loss functions.
+Enables the optimizer to propose different loss functions.
 
-Part of ARC Phase E Week 3: Loss Function Engineering
-Dev 2 implementation
 
 Usage:
     >>> spec = {

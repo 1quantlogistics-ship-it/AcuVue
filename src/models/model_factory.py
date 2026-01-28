@@ -1,27 +1,7 @@
 """
-Model Factory for Architecture Grammar System
-==============================================
+Model factory for building models from architecture specifications.
 
-Central factory for building complete models from architecture specifications.
-Assembles: Backbone → Fusion Module → Classification Head
-
-Part of ARC Phase E: Architecture Grammar System
-Dev 2 implementation - Week 1
-
-This factory enables ARC's Architect agent to propose architecture_spec dicts
-and have them automatically built into PyTorch models for training.
-
-Example architecture_spec:
-{
-    "backbone": "efficientnet-b3",
-    "fusion_type": "film",
-    "clinical_dim": 4,
-    "head_config": {
-        "hidden_dim": 256,
-        "num_classes": 2,
-        "dropout": 0.3
-    }
-}
+Assembles: Backbone -> Fusion Module -> Classification Head
 """
 
 import torch
@@ -40,7 +20,7 @@ class MultiModalClassifier(nn.Module):
 
     Architecture: Image Input → Backbone → Fusion (with clinical indicators) → Classification Head
 
-    This is the complete model that will be trained by ARC's Executor agent.
+    This is the complete model that will be trained by the trainer.
 
     Args:
         backbone: Backbone module (EfficientNet, ConvNeXt, or DeiT)
@@ -140,7 +120,7 @@ def build_model_from_spec(
     """
     Build a complete model from an architecture specification dict.
 
-    This is the main entry point for ARC's Architect agent. The agent generates
+    This is the main entry point for the architecture selector. The agent generates
     an architecture_spec dict, and this function builds the corresponding PyTorch model.
 
     Args:
@@ -232,7 +212,7 @@ def validate_architecture_spec(architecture_spec: Dict[str, Any]) -> bool:
     """
     Validate that an architecture specification is well-formed.
 
-    This can be used by ARC's Critic agent to check proposals before training.
+    This can be used by the validator to check proposals before training.
 
     Args:
         architecture_spec: Architecture specification dict
@@ -294,7 +274,7 @@ def get_model_summary(model: MultiModalClassifier) -> Dict[str, Any]:
     """
     Get a summary of model architecture and parameter counts.
 
-    Useful for logging and comparison in ARC's Historian.
+    Useful for logging and comparison in the experiment logger.
 
     Args:
         model: MultiModalClassifier instance

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Batch Statistics Logger - Phase 03e
+Batch Statistics Logger
 ====================================
 
 Computes comprehensive batch statistics for clean datasets (without CLAHE).
@@ -148,7 +148,7 @@ def main():
     args = parser.parse_args()
 
     print("=" * 70)
-    print("Batch Statistics Logger - Phase 03e")
+    print("Batch Statistics Logger")
     print("=" * 70)
     print(f"Dataset: {args.data_root}")
     print(f"Output: {args.output}")
