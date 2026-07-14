@@ -1,35 +1,34 @@
 # AcuVue
 
-**A research system for glaucoma screening from retinal fundus images.** AcuVue
-takes a single colour fundus photograph and produces a *normal vs. glaucoma*
-classification, with a lightweight **domain router** that selects a
-dataset-specific expert model before inference. A separate, earlier-stage track
-implements optic **disc / cup segmentation**, the basis for the cup-to-disc
-ratio (CDR) used in clinical glaucoma assessment.
+AcuVue classifies retinal fundus photographs as normal or glaucoma. One image
+goes in; a small domain router picks a dataset-specific expert model, and that
+model returns the prediction with a confidence score. Alongside it sits an
+earlier-stage track for optic disc and cup segmentation — the structures the
+cup-to-disc ratio (CDR) is measured from.
 
-> **Status:** research / educational software. **Not a medical device**, not
-> validated for clinical use, and carrying **no regulatory clearance**. The
-> results below come from public-dataset experiments, not prospective clinical
+> **Status:** research / educational software. Not a medical device, not
+> validated for clinical use, and it carries no regulatory clearance. The numbers
+> below come from public-dataset experiments, not prospective clinical
 > validation. See [Limitations](#limitations).
 
 ---
 
-## At a glance
+## Summary
 
 | | |
 |---|---|
 | **Input** | One RGB fundus image (any common format; resized to 224×224 for classification, 512×512 for segmentation) |
 | **Primary output** | Binary class `normal` / `glaucoma` + confidence, plus the routed domain and the expert head used |
-| **Segmentation output** | Optic-disc and optic-cup masks (U-Net); CDR is defined by these masks (see note below) |
+| **Segmentation output** | Optic-disc and optic-cup masks (U-Net); CDR is defined by these masks (see below) |
 | **Models** | EfficientNet-B0 glaucoma classifier · MobileNetV3-Small domain router · 3-level U-Net (disc/cup) |
 | **Architecture research track** | Backbone grammar (EfficientNet / ConvNeXt / DeiT) × fusion modules (FiLM / cross-attention / gated / late) for image + clinical-indicator fusion |
-| **Recorded result** | **Test AUC 0.937** — glaucoma classification, EfficientNet-B0, **RIM-ONE only (485 images)**, hospital-based split (details below) |
+| **Recorded result** | Test AUC 0.937 — glaucoma classification, EfficientNet-B0, RIM-ONE only (485 images), hospital-based split (details below) |
 | **Config** | Hydra / OmegaConf YAML |
-| **Trained weights** | **Not committed** and no download URL is configured yet — see [Pretrained inference](#pretrained-inference) |
+| **Trained weights** | Not committed; no download URL configured yet — see [Pretrained inference](#pretrained-inference) |
 
-The classification pipeline is the part with a **recorded, artifact-backed
-result**. The segmentation track currently runs on **synthetic and smoke-test
-data** and has no committed accuracy metrics; it is documented honestly as such.
+Only the classification pipeline has a recorded result behind it. The
+segmentation track runs on synthetic and smoke-test data for now, with no
+measured accuracy.
 
 ---
 
@@ -58,89 +57,77 @@ flowchart TD
     class U,M,C dashed;
 ```
 
-*Solid path = the domain-routed classifier with a recorded test result.
-Dashed path = the disc/cup segmentation track, currently exercised only on
-synthetic and dummy data. Preprocessing is shared; the router and expert head
-are separate models. Today a single trained expert head (RIM-ONE) exists, so all
-domains map to it (see [Domain routing](#domain-routing-and-multi-head-architecture)).*
+The solid path is the domain-routed classifier, the part with a recorded test
+result. The dashed path is the disc/cup segmentation track, which hasn't been past
+synthetic and dummy data. Preprocessing is shared; the router and expert
+head are separate models. Only one expert head is trained today (RIM-ONE), so
+every domain routes to it — see
+[Domain routing](#domain-routing-and-multi-head-architecture).
 
 ---
 
 ## The medical-imaging task
 
-Glaucoma is an optic-neuropathy in which the optic **cup** enlarges relative to
-the optic **disc**. The vertical **cup-to-disc ratio (CDR)** — the cup's vertical
-diameter divided by the disc's vertical diameter — is a standard structural
-indicator: healthy eyes typically sit lower, glaucomatous eyes higher.
+Glaucoma enlarges the optic cup relative to the optic disc. The vertical
+cup-to-disc ratio (CDR) — cup vertical diameter over disc vertical diameter — is
+a standard structural marker: lower in healthy eyes, higher in glaucomatous ones.
 
 ![Schematic showing an optic disc with a small cup (healthy, CDR ≈ 0.3) and a large cup (glaucomatous, CDR ≈ 0.7), illustrating that vertical CDR is the cup vertical diameter divided by the disc vertical diameter.](docs/images/cdr-schematic.svg)
 
-*Schematic definition of vertical CDR — illustrative geometry, **not** a model
-output or a clinical image. AcuVue approaches the problem two ways: (1) direct
-image **classification** of `normal` vs `glaucoma`, and (2) **segmentation** of
-the disc and cup regions that CDR is computed from.*
+*Vertical CDR drawn as a schematic — illustrative geometry, not a model output or
+a real image. AcuVue attacks the problem from two directions: classify `normal`
+vs `glaucoma` straight from the image, and segment the disc and cup that CDR is
+measured from.*
 
-> **CDR note (honest scope):** the segmentation model outputs disc and cup masks,
-> and the synthetic data generator *parameterizes* CDR when it creates examples.
-> The repository does **not** yet include code that derives CDR from a *predicted*
-> mask, so CDR is not currently a pipeline output. This is listed under
-> [Reproducibility levels](#reproducibility-levels) as future work rather than a
-> shipped capability.
+The segmentation model emits disc and cup masks, and the synthetic generator
+fixes a CDR when it builds an example. Nothing in the pipeline computes CDR from a
+*predicted* mask yet, so CDR is not a real output today.
 
 ---
 
 ## End-to-end workflow
 
-**Inference (classification, the recorded path):**
+Inference, the recorded classification path:
 
 1. Load a fundus image.
-2. Preprocess: resize to 224×224, ImageNet normalization.
-3. **Domain router** (MobileNetV3-Small) predicts the source domain
-   (`rimone`, `refuge2`, `g1020`, `unknown`).
-4. The pipeline maps the domain to an **expert head** and selects it (falling
-   back to the default head when the mapped head is not loaded).
-5. The **expert head** (EfficientNet-B0) predicts `normal` / `glaucoma` with a
+2. Preprocess — resize to 224×224, ImageNet normalization.
+3. The domain router (MobileNetV3-Small) predicts the source domain: `rimone`,
+   `refuge2`, `g1020`, or `unknown`.
+4. The pipeline maps that domain to an expert head and loads it, falling back to
+   the default head if the mapped one isn't available.
+5. The expert head (EfficientNet-B0) returns `normal` / `glaucoma` with a
    confidence score.
-6. The result carries the prediction, probabilities, routed domain, and the head
-   used.
+6. The result carries the prediction, the class probabilities, the routed domain,
+   and which head ran.
 
-**Segmentation (research track):** a 3-level U-Net maps a 512×512 fundus image
-to a disc/cup mask (sigmoid output), trained with a BCE + Dice objective. It is
-currently demonstrated on **synthetic** fundus images and dummy smoke-test data.
+Segmentation is separate. A 3-level U-Net takes a 512×512 image and produces a
+disc/cup mask (sigmoid output), trained with BCE + Dice. So far it has only run on
+synthetic fundus images and dummy smoke-test data.
 
 ---
 
 ## Prediction example
 
-A reproducible **synthetic** demonstration of the segmentation target — original
-fundus, disc mask, cup mask, overlay, and the resulting vertical CDR — can be
-generated locally (no downloads, no GPU, no trained weights):
+You can generate a synthetic demonstration of the segmentation target locally —
+original fundus, disc mask, cup mask, overlay, and the resulting vertical CDR. No
+downloads, no GPU, no trained weights:
 
 ```bash
 python scripts/visualization/generate_segmentation_demo.py --seed 42
 # -> docs/images/segmentation-demo.png
 ```
 
-<!--
-segmentation-demo.png is intentionally NOT committed: it is produced by executing
-the repository's synthetic generator, and this documentation pass was prepared in
-an environment where the project code could not be run. Regenerate it locally
-with the command above (requires numpy, opencv-python, matplotlib). The figure is
-a synthetic demonstration of the disc/cup task and CDR — not a clinical result
-and not a prediction from a trained model.
--->
-
-A real end-to-end **prediction** figure (fundus → predicted masks / class →
-ground truth) is **not** included because the trained checkpoints and the
-clinical images are not committed (see [Pretrained inference](#pretrained-inference)
-and [Reproducibility levels](#reproducibility-levels)).
+There is no real end-to-end prediction figure (fundus → predicted masks / class →
+ground truth), because neither the trained checkpoints nor the clinical images
+are committed — see [Pretrained inference](#pretrained-inference) and
+[Reproducibility levels](#reproducibility-levels).
 
 ---
 
 ## Results
 
-The one result with a committed, machine-readable artifact behind it is the
-production **glaucoma classifier**:
+The one result backed by a committed artifact is the production glaucoma
+classifier:
 
 ![Horizontal bar chart of held-out RIM-ONE test metrics for the EfficientNet-B0 classifier: test AUC 0.937, specificity 0.917, accuracy 0.765, sensitivity 0.744.](docs/images/evaluation-summary.svg)
 
@@ -152,42 +139,38 @@ production **glaucoma classifier**:
 | Test specificity | 0.917 | Normal cases correctly cleared |
 | Best validation AUC | 0.9875 | At epoch 29 of 30 |
 
-**Exactly what this measures — and what it does not:**
+This measures binary classification — `normal` vs `glaucoma` from the image — not
+segmentation and not a CDR reading. The model is EfficientNet-B0 (timm),
+ImageNet-pretrained, 224×224 input. It was trained and evaluated on RIM-ONE only,
+485 images; this is not the combined 1,905-image set, and the run used no domain
+adaptation.
 
-- **Task:** binary classification (`normal` vs `glaucoma`) from the fundus image
-  — **not** segmentation and **not** a CDR measurement.
-- **Model:** EfficientNet-B0 (timm), ImageNet-pretrained, 224×224 input.
-- **Dataset:** **RIM-ONE only — 485 images.** It is **not** the combined
-  1,905-image set, and the run did **not** use domain adaptation. (An earlier
-  README described "0.93 AUC on RIM-ONE + REFUGE + G1020 across 1,905 images with
-  domain adaptation"; that conflated two separate things and is corrected here —
-  see [Datasets](#datasets-and-preprocessing).)
-- **Split:** **hospital-based (institution-level).** Train/validation come from
-  hospitals `r2` + `r3` (330 train, 57 val); the held-out test set is hospital
-  `r1` (98 images). No hospital appears in both train and test.
-- **Why hospital-based matters:** a random image-level split on RIM-ONE reaches
-  ~97% AUC by learning per-hospital acquisition signatures — data leakage. The
-  hospital-based split removes that shortcut, and 0.937 is the more honest
-  number. See [`docs/HOSPITAL_BASED_SPLITTING.md`](docs/HOSPITAL_BASED_SPLITTING.md).
-- **Provenance:** recorded in
-  [`models/production/training_history_v1.json`](models/production/training_history_v1.json)
-  (`test_metrics`), with dataset counts in
-  [`models/production/dataset_metadata_v1.json`](models/production/dataset_metadata_v1.json)
-  and the run configuration in
-  [`configs/production_training_v1.yaml`](configs/production_training_v1.yaml).
-- **Reproducibility:** this is a **recorded historical result**. It is **not**
-  reproducible from a clean clone: the checkpoint is not committed, no download
-  URL is configured, and RIM-ONE must be obtained separately and preprocessed.
-  It is regenerable only by re-running training on RIM-ONE (single run; no
-  repeated-seed variance is recorded).
+The split is hospital-based. Training and validation come from hospitals `r2` and
+`r3` (330 train, 57 val); the held-out test set is hospital `r1` (98 images), and
+no hospital appears on both sides. That matters here. A random image-level split
+on RIM-ONE reaches ~97% AUC by memorizing per-hospital acquisition signatures,
+which is leakage. Splitting by hospital closes that shortcut, and 0.937 is what's
+left. Background in
+[`docs/HOSPITAL_BASED_SPLITTING.md`](docs/HOSPITAL_BASED_SPLITTING.md).
 
-No ROC curve is shown: the artifact stores summary metrics, not per-sample
-scores, so a faithful ROC/confusion matrix cannot be reconstructed.
+The numbers come from
+[`models/production/training_history_v1.json`](models/production/training_history_v1.json)
+(`test_metrics`), with dataset counts in
+[`models/production/dataset_metadata_v1.json`](models/production/dataset_metadata_v1.json)
+and the run configuration in
+[`configs/production_training_v1.yaml`](configs/production_training_v1.yaml).
 
-**Segmentation results:** none are recorded. The U-Net has Dice/IoU metric code
-([`src/evaluation/metrics.py`](src/evaluation/metrics.py)) but no committed
-Dice/IoU numbers on real data; it has only been exercised on synthetic/dummy
-data.
+Treat this as a recorded historical result, not something you can rebuild from a
+clean clone. The checkpoint isn't committed, no download URL is set, and RIM-ONE
+has to be fetched and preprocessed separately. Regenerating it means retraining on
+RIM-ONE, and only a single run is recorded — there is no repeated-seed variance.
+
+There is no ROC curve because the artifact stores summary metrics, not per-sample
+scores; a faithful ROC or confusion matrix can't be reconstructed from it.
+
+No segmentation results are recorded. The Dice/IoU code exists
+([`src/evaluation/metrics.py`](src/evaluation/metrics.py)), but only ever against
+synthetic and dummy data, so nothing is committed.
 
 ---
 
@@ -212,50 +195,48 @@ flowchart LR
     class HEAD2,HEAD3 plan;
 ```
 
-**How routing works (as implemented):**
+The router is a learned MobileNetV3-Small classifier (~2.5M params). It doesn't
+diagnose anything — it predicts which dataset family (acquisition domain) an image
+came from. The model defines four classes (`rimone`, `refuge2`, `g1020`,
+`unknown`), and the training config
+([`configs/router_training_v1.yaml`](configs/router_training_v1.yaml)) trains over
+the three known ones.
 
-- The router is a **learned** classifier (MobileNetV3-Small, ~2.5M params). Its
-  job is *not* diagnosis — it predicts which dataset family (acquisition domain)
-  an image came from. It is defined with **4 classes**
-  (`rimone`, `refuge2`, `g1020`, `unknown`); the training config
-  ([`configs/router_training_v1.yaml`](configs/router_training_v1.yaml)) trains
-  over the 3 known domains.
-- Routing is **hard** (`argmax` over the softmax), then a static
-  **domain → head map** selects the expert
-  ([`src/inference/head_registry.py`](src/inference/head_registry.py)).
-- **Fallback:** if the mapped head is not loaded, the pipeline falls back to the
-  first available head
-  ([`src/inference/pipeline.py`](src/inference/pipeline.py)).
-- **Ensemble mode** (`predict_with_ensemble`) averages probabilities across
-  multiple heads for uncertain cases.
-- **Current reality:** only **one** expert head is registered
-  (`glaucoma_rimone_v1`, the RIM-ONE model). Every domain — including `refuge2`
-  and `g1020` — currently maps to it as a fallback. Per-domain heads are
-  scaffolded (commented placeholders) but not yet trained. Neither the router
-  weights nor the head weights are committed, so end-to-end routing requires
-  training or supplying those weights.
+Routing is hard: `argmax` over the softmax, then a static domain → head map
+([`src/inference/head_registry.py`](src/inference/head_registry.py)) picks the
+expert. If the mapped head isn't loaded, the pipeline falls back to the first one
+available ([`src/inference/pipeline.py`](src/inference/pipeline.py)). For uncertain
+cases there's an ensemble path (`predict_with_ensemble`) that averages
+probabilities across heads.
 
-Full design notes: [`docs/MULTI_HEAD_ARCHITECTURE.md`](docs/MULTI_HEAD_ARCHITECTURE.md).
+In practice there is exactly one head registered — `glaucoma_rimone_v1`, the
+RIM-ONE model — and every domain, `refuge2` and `g1020` included, currently falls
+back to it. The per-domain heads are scaffolded as commented placeholders but
+haven't been trained, and neither the router weights nor the head weights are
+committed, so running the pipeline end to end means training or supplying them
+first.
+
+Design notes: [`docs/MULTI_HEAD_ARCHITECTURE.md`](docs/MULTI_HEAD_ARCHITECTURE.md).
 
 ---
 
 ## Model architecture and fusion strategies
 
-Three families of models are implemented:
+Three model families live in the tree.
 
-**1. Glaucoma classifier (production path).** EfficientNet-B0 (timm), ImageNet
-pretrained, `Dropout(0.3) → Linear(1280, 2)`. This is the model behind the 0.937
-result. Wrapped for inference by `GlaucomaPredictor`
+The glaucoma classifier is the production path: EfficientNet-B0 (timm),
+ImageNet-pretrained, `Dropout(0.3) → Linear(1280, 2)`. It's the model behind the
+0.937 result, wrapped for inference by `GlaucomaPredictor`
 ([`src/inference/predictor.py`](src/inference/predictor.py)).
 
-**2. Disc/cup segmentation.** A compact 3-level U-Net with skip connections,
-sigmoid mask output, BCE + Dice objective
+Disc/cup segmentation is a compact 3-level U-Net with skip connections, sigmoid
+mask output, BCE + Dice objective
 ([`src/models/unet_disc_cup.py`](src/models/unet_disc_cup.py)).
 
-**3. Architecture-grammar research track.** A model factory
-([`src/models/model_factory.py`](src/models/model_factory.py)) composes a
-backbone with a fusion module to build a multimodal classifier that fuses image
-features with clinical indicators:
+The third is an architecture-grammar research track. A model factory
+([`src/models/model_factory.py`](src/models/model_factory.py)) pairs a backbone
+with a fusion module to build a multimodal classifier that fuses image features
+with clinical indicators:
 
 | Backbones ([`backbones.py`](src/models/backbones.py)) | Fusion modules ([`fusion_modules.py`](src/models/fusion_modules.py)) |
 |---|---|
@@ -266,22 +247,21 @@ features with clinical indicators:
 
 These combinations are unit-tested for shape and gradient flow
 ([`src/models/tests/test_architectures.py`](src/models/tests/test_architectures.py)),
-but the **recorded 0.937 result uses the plain EfficientNet-B0 classifier, not a
-fusion model.** The fusion grammar is research scaffolding, not the production
-model.
+but the recorded 0.937 result uses the plain EfficientNet-B0 classifier, not a
+fusion model — the grammar is research scaffolding, not the production path.
 
-Also present as reusable components (not part of the recorded run): domain-
-adversarial training (gradient reversal), curriculum learning across datasets,
-and custom losses (weighted BCE, asymmetric focal, AUC-surrogate, DRI
+A few other reusable pieces are in the tree but weren't part of the recorded run:
+domain-adversarial training (gradient reversal), curriculum learning across
+datasets, and custom losses (weighted BCE, asymmetric focal, AUC-surrogate, DRI
 attention-regularization).
 
 ---
 
 ## Datasets and preprocessing
 
-AcuVue references three public fundus datasets. **None are committed** (raw and
-processed data are git-ignored); each must be obtained from its source under its
-own license.
+AcuVue points at three public fundus datasets. None are committed — raw and
+processed data are git-ignored — and each has to come from its own source under
+its own license.
 
 ![Horizontal bar chart of documented source-dataset sizes: RIM-ONE r3 485 (highlighted), REFUGE2 400, G1020 1020.](docs/images/dataset-distribution.svg)
 
@@ -291,49 +271,49 @@ own license.
 | REFUGE2 | 400 (train split only) | Domain routing / combined set | External; val/test labels are competition holdouts |
 | G1020 | 1,020 | Domain routing / combined set | External download |
 
-**Two different dataset views — do not conflate them:**
+Two dataset views get confused easily, so to be explicit about which is which:
 
-1. **RIM-ONE, hospital-split (the recorded classification result).** 485 images,
-   split by hospital to prevent leakage
-   ([`dataset_metadata_v1.json`](models/production/dataset_metadata_v1.json)):
+RIM-ONE with the hospital split is the one behind the recorded result. 485 images,
+split by hospital to keep any institution out of both train and test
+([`dataset_metadata_v1.json`](models/production/dataset_metadata_v1.json)):
 
-   | Split | Hospitals | Images | Normal | Glaucoma |
-   |---|---|---:|---:|---:|
-   | Train | r2, r3 | 330 | 189 | 141 |
-   | Val | r2, r3 | 57 | 38 | 19 |
-   | Test | **r1** | 98 | 86 | 12 |
-   | **Total** | | **485** | 313 | 172 |
+| Split | Hospitals | Images | Normal | Glaucoma |
+|---|---|---:|---:|---:|
+| Train | r2, r3 | 330 | 189 | 141 |
+| Val | r2, r3 | 57 | 38 | 19 |
+| Test | **r1** | 98 | 86 | 12 |
+| **Total** | | **485** | 313 | 172 |
 
-2. **`combined_v2` — a separate 1,905-image preprocessing experiment**
-   ([MANIFEST](data/processed/combined_v2/MANIFEST.md)): RIM-ONE + REFUGE2 +
-   G1020, image-level split (1,394 train / 132 val / 379 test), 73.3% normal /
-   26.7% glaucoma. This set was built to study preprocessing (e.g. removing CLAHE
-   and adding ImageNet normalization). **It has no recorded AUC** and is *not* the
-   dataset behind the 0.937 number.
+`combined_v2` is a separate 1,905-image preprocessing experiment
+([MANIFEST](data/processed/combined_v2/MANIFEST.md)): RIM-ONE + REFUGE2 + G1020,
+image-level split (1,394 train / 132 val / 379 test), 73.3% normal / 26.7%
+glaucoma. It was built to study preprocessing — dropping CLAHE, adding ImageNet
+normalization — and has no recorded AUC. It is not the dataset behind the 0.937
+number.
 
-**Preprocessing:** BGR→RGB, resize (512×512 for segmentation, 224×224 for the
-classifier), pixel scaling to [0, 1], optional ImageNet normalization. CLAHE was
-implemented earlier and later removed as incompatible with ImageNet-pretrained
-transfer learning. Details:
+Preprocessing does the usual: BGR→RGB, resize (512×512 for segmentation, 224×224
+for the classifier), scale pixels to [0, 1], optional ImageNet normalization.
+CLAHE was in the pipeline early on and later removed once it turned out to fight
+ImageNet-pretrained transfer learning. Details in
 [`docs/preprocessing_pipeline.md`](docs/preprocessing_pipeline.md).
 
 ---
 
 ## Evaluation methodology
 
-- **Classification metrics** — accuracy, sensitivity, specificity, precision, F1,
-  and AUC (via scikit-learn) in
-  [`src/evaluation/metrics.py`](src/evaluation/metrics.py).
-- **Segmentation metrics** — Dice, IoU, pixel accuracy, sensitivity/specificity
-  in the same module (used by the segmentation training scripts; no results
-  committed).
-- **Leakage control** — institution-level (hospital-based) splitting is the
-  recommended protocol for RIM-ONE; see
-  [`src/data/hospital_splitter.py`](src/data/hospital_splitter.py) and
-  [`docs/HOSPITAL_BASED_SPLITTING.md`](docs/HOSPITAL_BASED_SPLITTING.md).
-- **Cross-dataset evaluation** — a `CrossDatasetEvaluator`
-  ([`src/evaluation/cross_dataset_evaluator.py`](src/evaluation/cross_dataset_evaluator.py))
-  measures per-dataset AUC and domain-shift drop (requires the datasets).
+Classification metrics — accuracy, sensitivity, specificity, precision, F1, and
+AUC (scikit-learn) — live in
+[`src/evaluation/metrics.py`](src/evaluation/metrics.py). The same module holds the
+segmentation metrics (Dice, IoU, pixel accuracy, sensitivity/specificity) that the
+segmentation trainers call, though no results are committed.
+
+Leakage control is institution-level (hospital-based) splitting, the recommended
+protocol for RIM-ONE; see
+[`src/data/hospital_splitter.py`](src/data/hospital_splitter.py) and
+[`docs/HOSPITAL_BASED_SPLITTING.md`](docs/HOSPITAL_BASED_SPLITTING.md). For
+cross-dataset work, `CrossDatasetEvaluator`
+([`src/evaluation/cross_dataset_evaluator.py`](src/evaluation/cross_dataset_evaluator.py))
+reports per-dataset AUC and the domain-shift drop, once you have the datasets.
 
 ---
 
@@ -348,14 +328,14 @@ pip install -r requirements.txt
 ```
 
 Requires Python 3.9+ and PyTorch 2.0+. A GPU is optional for the smoke tests and
-inference; it is recommended for training.
+inference, and worth having for training.
 
 ---
 
 ## Fastest verification path (smoke test)
 
-This checks that the environment and core code paths work. It uses synthetic /
-dummy data only and verifies **execution, not clinical performance**.
+This confirms the environment and the core code paths run. It uses synthetic and
+dummy data only, so it checks execution, not clinical performance.
 
 ```bash
 # 1. Verify the environment (imports, a U-Net forward pass, dummy data)
@@ -372,14 +352,14 @@ python src/training/train_segmentation.py
 
 ## Pretrained inference
 
-> **Currently blocked from a clean clone.** The trained weights
-> (`glaucoma_efficientnet_b0_v1.pt`, `domain_classifier_v1.pt`) are **not
-> committed**, and `scripts/download_weights.py` has **placeholder URLs
-> (`None`)** — so `--all` reports "no URL configured" and downloads nothing. To
-> run real inference you must supply weights (retrain, or place a checkpoint at
-> the expected path) and then load the pipeline.
+Real inference is blocked from a clean clone. The trained weights
+(`glaucoma_efficientnet_b0_v1.pt`, `domain_classifier_v1.pt`) aren't committed, and
+`scripts/download_weights.py` still has placeholder URLs (`None`), so `--all`
+prints "no URL configured" and downloads nothing. To run it you have to supply
+weights yourself: retrain, or drop a checkpoint at the expected path, then load the
+pipeline.
 
-Intended API once weights are present:
+Once weights are in place, the API is:
 
 ```python
 from src.inference.pipeline import MultiHeadPipeline
@@ -398,8 +378,8 @@ Expected checkpoint locations:
 
 ## Training
 
-Real-data training requires obtaining and preprocessing the datasets (they are
-not committed).
+Training on real data means fetching and preprocessing the datasets first, since
+none are committed.
 
 ```bash
 # Segmentation baseline on synthetic data (Hydra config: phase02_baseline)
@@ -409,13 +389,12 @@ python src/training/train_phase02.py
 python src/training/train_router.py --config configs/router_training_v1.yaml
 ```
 
-**Classifier training — known gap.** The production run is documented by
+The classifier trainer has a known config gap. The production run is documented in
 [`configs/production_training_v1.yaml`](configs/production_training_v1.yaml), but
-[`src/training/train_classification.py`](src/training/train_classification.py) is
-a Hydra entry point whose default config name (`phase03_classification`) is **not
-present** in `configs/`. As committed, the classifier training command does not
-run without adding that config (or adapting the script to
-`production_training_v1.yaml`). This is recorded under
+[`src/training/train_classification.py`](src/training/train_classification.py) is a
+Hydra entry point whose default config name, `phase03_classification`, isn't in
+`configs/`. As committed, the command won't run until that config is added (or the
+script is pointed at `production_training_v1.yaml`). It's tracked under
 [Reproducibility levels](#reproducibility-levels).
 
 ---
@@ -444,31 +423,27 @@ python src/training/train_phase02.py training.epochs=20 training.batch_size=8
 
 ## Testing
 
-The suite lives in [`tests/`](tests/) (unit + integration) plus
-[`src/models/tests/`](src/models/tests/). Tests are designed to run **standalone**
-on synthetic data, mocks, and temporary random-weight checkpoints; tests that
-need trained weights or clinical data **skip gracefully**.
+Tests are in [`tests/`](tests/) (unit + integration) plus
+[`src/models/tests/`](src/models/tests/). They're built to run standalone on
+synthetic data, mocks, and temporary random-weight checkpoints; anything that
+needs trained weights or clinical data skips itself. The routing and pipeline
+tests — [`test_domain_router.py`](tests/unit/test_domain_router.py),
+[`test_multi_head_pipeline.py`](tests/unit/test_multi_head_pipeline.py), and
+[`test_routing_pipeline.py`](tests/integration/test_routing_pipeline.py) — build
+their own fixtures and never touch the network.
 
 ```bash
 pytest tests/ -v
 ```
 
-> These tests were **not executed** while preparing this documentation (the
-> project was set up to run on a separate VM, not the environment used for the
-> docs pass), so no pass/fail claim is made here. Test *design* was reviewed from
-> source: e.g. [`test_domain_router.py`](tests/unit/test_domain_router.py),
-> [`test_multi_head_pipeline.py`](tests/unit/test_multi_head_pipeline.py), and
-> [`test_routing_pipeline.py`](tests/integration/test_routing_pipeline.py) build
-> their own fixtures and do not download anything.
-
 ---
 
 ## Reproducing the documentation visuals
 
-The analytical figures are regenerated by scripts under
+The charts are regenerated by scripts in
 [`scripts/visualization/`](scripts/visualization/). They read only committed
-artifacts (or the repository's synthetic generator), use a non-interactive
-backend, and write into `docs/images/`:
+artifacts (or the synthetic generator), use a non-interactive backend, and write
+into `docs/images/`:
 
 ```bash
 python scripts/visualization/generate_dataset_summary.py     # dataset-distribution.svg
@@ -476,8 +451,8 @@ python scripts/visualization/generate_evaluation_summary.py  # evaluation-summar
 python scripts/visualization/generate_segmentation_demo.py --seed 42  # segmentation-demo.png
 ```
 
-Provenance for every image (source artifact, hand-authored vs script-generated,
-synthetic vs clinical) is in [`docs/VISUALS.md`](docs/VISUALS.md).
+Per-image provenance — source artifact, hand-authored vs script-generated,
+synthetic vs clinical — is in [`docs/VISUALS.md`](docs/VISUALS.md).
 
 ---
 
@@ -504,7 +479,7 @@ AcuVue/
 
 ## Reproducibility levels
 
-An explicit map of what a reader can expect to run, and what they cannot:
+What you can actually run from a clean clone, and what you can't:
 
 | Capability | Level | Notes |
 |---|---|---|
@@ -527,32 +502,28 @@ external assets · ⚪ planned / not implemented.
 
 ## Limitations
 
-- **Research/educational only. Not a medical device.** No regulatory clearance
-  (FDA/CE or otherwise) is claimed or implied.
-- Segmentation and CDR do **not** by themselves establish a diagnosis; qualified
-  clinical interpretation is required.
-- The recorded result is a **single run** on **one dataset** (RIM-ONE, 485
-  images) with a **small held-out test set (98 images, only 12 glaucoma)** — wide
-  confidence intervals; treat 0.937 as indicative, not definitive.
-- Public-dataset evaluation is **not** prospective clinical validation.
-  Performance can vary with camera/device, population, image quality, and
-  annotation protocol.
-- Cross-domain generalization is unproven: only the RIM-ONE head is trained, and
-  images from other domains currently route to it by fallback.
-- No calibration, uncertainty quantification, fairness, or subgroup analysis is
-  provided.
+- Research and educational use only — not a medical device, and no regulatory
+  clearance (FDA/CE or otherwise) is claimed or implied.
+- Segmentation and CDR don't establish a diagnosis on their own; a qualified
+  reader still has to interpret them.
+- The recorded result is one run, on one dataset (RIM-ONE, 485 images), with a
+  small held-out test set — 98 images, only 12 of them glaucoma. Confidence
+  intervals are wide; read 0.937 as indicative, not settled.
+- Public-dataset evaluation isn't prospective clinical validation. Performance can
+  shift with camera, population, image quality, and annotation protocol.
+- Cross-domain generalization is untested: only the RIM-ONE head exists, and other
+  domains reach it by fallback.
+- No calibration, uncertainty estimates, fairness, or subgroup analysis.
 
 ---
 
 ## Security and privacy
 
-- **No patient data is included** in this repository. Raw and processed image
-  directories are git-ignored; only synthetic data and small JSON/Markdown
-  metadata are tracked.
-- The public datasets carry their own licenses and usage terms — review them
-  before downloading or redistributing. AcuVue does not relicense them.
-- Do not commit clinical images, PHI, or trained weights derived from restricted
-  data to this repository.
+- No patient data is in this repository. Raw and processed image directories are
+  git-ignored; only synthetic data and small JSON/Markdown metadata are tracked.
+- The public datasets keep their own licenses and terms — check them before
+  downloading or redistributing. AcuVue doesn't relicense them.
+- Don't commit clinical images, PHI, or weights derived from restricted data here.
 
 ---
 
@@ -569,6 +540,5 @@ external assets · ⚪ planned / not implemented.
 
 ## License
 
-MIT (see repository). Source datasets and any trained weights are governed by
-their own licenses and terms, which are not superseded by this repository's
-license.
+MIT (see repository). Source datasets and any trained weights stay under their own
+licenses and terms, which this repository's license doesn't override.
