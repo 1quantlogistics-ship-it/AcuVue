@@ -483,20 +483,21 @@ What you can actually run from a clean clone, and what you can't:
 
 | Capability | Level | Notes |
 |---|---|---|
-| Synthetic fundus generation | ✅ Runs from clean clone | Deterministic (`seed=42`), no downloads |
-| U-Net forward pass + segmentation smoke test | ✅ Runs from clean clone | Dummy data; verifies execution only |
-| Architecture grammar (backbones × fusion) | ✅ Runs from clean clone | Shape/gradient unit tests |
-| Router / pipeline / predictor logic | ✅ Runs from clean clone | Random-weight & mock fixtures |
-| Documentation visuals (dataset, evaluation, seg-demo) | ✅ Runs from clean clone | Reads committed artifacts / synthetic generator |
-| **0.937 classification result** | 🟠 Recorded artifact | In `training_history_v1.json`; regenerable only with RIM-ONE + retraining |
-| Real pretrained inference | 🔴 Blocked | Weights not committed; download URLs are placeholders |
-| Real-data training (any dataset) | 🔴 External data required | Datasets git-ignored; obtain + preprocess separately |
-| Classifier training entry point | 🔴 Config gap | Default Hydra config `phase03_classification` missing (see [Training](#training)) |
-| CDR derived from predicted masks | ⚪ Not implemented | Future work; CDR exists only as a synthetic-generation parameter |
-| Per-domain expert heads (refuge2, g1020) | ⚪ Planned | Scaffolded; all domains currently fall back to the RIM-ONE head |
+| Synthetic fundus generation | Runs from clean clone | Deterministic (`seed=42`), no downloads |
+| U-Net forward pass + segmentation smoke test | Runs from clean clone | Dummy data; verifies execution only |
+| Architecture grammar (backbones × fusion) | Runs from clean clone | Shape/gradient unit tests |
+| Router / pipeline / predictor logic | Runs from clean clone | Random-weight & mock fixtures |
+| Documentation visuals (dataset, evaluation, seg-demo) | Runs from clean clone | Reads committed artifacts / synthetic generator |
+| **0.937 classification result** | Recorded artifact | In `training_history_v1.json`; regenerable only with RIM-ONE + retraining |
+| Real pretrained inference | Blocked | Weights not committed; download URLs are placeholders |
+| Real-data training (any dataset) | External data required | Datasets git-ignored; obtain + preprocess separately |
+| Classifier training entry point | Config gap | Default Hydra config `phase03_classification` missing (see [Training](#training)) |
+| CDR derived from predicted masks | Not implemented | Future work; CDR exists only as a synthetic-generation parameter |
+| Per-domain expert heads (refuge2, g1020) | Planned | Scaffolded; all domains currently fall back to the RIM-ONE head |
 
-Legend: ✅ runnable · 🟠 recorded (needs data/retrain) · 🔴 blocked without
-external assets · ⚪ planned / not implemented.
+The Level column sorts into four cases: runs from a clean clone; recorded result
+that needs RIM-ONE and retraining to reproduce; blocked without external weights
+or data (the config gap included); and planned or not yet implemented.
 
 ---
 
@@ -540,5 +541,12 @@ external assets · ⚪ planned / not implemented.
 
 ## License
 
-MIT (see repository). Source datasets and any trained weights stay under their own
-licenses and terms, which this repository's license doesn't override.
+AcuVue is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). You
+can use, modify, and share it for any noncommercial purpose — research, teaching,
+personal projects, and use by nonprofits, schools, and government bodies all
+qualify — but not for commercial use. The full terms are in [`LICENSE`](LICENSE),
+and <https://polyformproject.org/licenses/noncommercial/1.0.0> spells out what
+counts as noncommercial.
+
+Source datasets and any trained weights stay under their own licenses and terms,
+which this license doesn't override.
