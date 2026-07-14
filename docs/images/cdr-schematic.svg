@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 440" font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+      <path d="M1,1 L7,4 L1,7 Z" fill="#57606a"/>
+    </marker>
+  </defs>
+  <rect width="820" height="440" fill="#ffffff"/>
+
+  <text x="410" y="30" text-anchor="middle" font-size="17" font-weight="700" fill="#1f2328">Optic disc &amp; cup segmentation &#8594; vertical cup-to-disc ratio (CDR)</text>
+  <text x="410" y="52" text-anchor="middle" font-size="12.5" fill="#57606a">CDR (vertical) = cup vertical diameter &#247; disc vertical diameter</text>
+  <text x="410" y="72" text-anchor="middle" font-size="11.5" font-style="italic" fill="#8b949e">Schematic — illustrative geometry, not a model output or clinical image</text>
+
+  <!-- ===== Panel A: healthy ===== -->
+  <circle cx="230" cy="240" r="100" fill="#cfe3ff" stroke="#1f6feb" stroke-width="2.5"/>
+  <ellipse cx="230" cy="240" rx="30" ry="32" fill="#ffd7cc" stroke="#d1242f" stroke-width="2.5"/>
+  <!-- disc diameter measure -->
+  <line x1="95" y1="140" x2="95" y2="340" stroke="#57606a" stroke-width="1.4" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="88" y="244" text-anchor="end" font-size="12" fill="#1f6feb" font-weight="700">disc</text>
+  <!-- cup diameter measure -->
+  <line x1="300" y1="208" x2="300" y2="272" stroke="#57606a" stroke-width="1.4" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="308" y="244" font-size="12" fill="#d1242f" font-weight="700">cup</text>
+  <text x="230" y="386" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2328">Healthy</text>
+  <text x="230" y="408" text-anchor="middle" font-size="13" fill="#57606a">vertical CDR &#8776; 0.3</text>
+
+  <!-- ===== Panel B: glaucomatous ===== -->
+  <circle cx="610" cy="240" r="100" fill="#cfe3ff" stroke="#1f6feb" stroke-width="2.5"/>
+  <ellipse cx="610" cy="240" rx="68" ry="73" fill="#ffd7cc" stroke="#d1242f" stroke-width="2.5"/>
+  <line x1="475" y1="140" x2="475" y2="340" stroke="#57606a" stroke-width="1.4" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="468" y="244" text-anchor="end" font-size="12" fill="#1f6feb" font-weight="700">disc</text>
+  <line x1="700" y1="167" x2="700" y2="313" stroke="#57606a" stroke-width="1.4" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="708" y="244" font-size="12" fill="#d1242f" font-weight="700">cup</text>
+  <text x="610" y="386" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2328">Glaucomatous</text>
+  <text x="610" y="408" text-anchor="middle" font-size="13" fill="#57606a">vertical CDR &#8776; 0.7</text>
+</svg>

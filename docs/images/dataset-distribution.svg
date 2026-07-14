@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <rect width="800" height="360" fill="#ffffff"/>
+  <text x="400" y="34" text-anchor="middle" font-size="17" font-weight="700" fill="#1f2328">AcuVue public source datasets — documented samples used</text>
+  <text x="400" y="56" text-anchor="middle" font-size="12.5" fill="#57606a">RIM-ONE (blue) is the only dataset behind the recorded test AUC of 0.937</text>
+
+  <!-- axis baseline -->
+  <line x1="180" y1="90" x2="180" y2="300" stroke="#d0d7de" stroke-width="1"/>
+
+  <!-- RIM-ONE: 485 -->
+  <rect x="180" y="104" width="228" height="46" rx="3" fill="#1f6feb"/>
+  <text x="172" y="124" text-anchor="end" font-size="13" font-weight="700" fill="#1f2328">RIM-ONE r3</text>
+  <text x="172" y="140" text-anchor="end" font-size="10.5" fill="#57606a">Spanish clinical centers</text>
+  <text x="416" y="132" font-size="13" font-weight="700" fill="#1f2328">485</text>
+
+  <!-- REFUGE2: 400 -->
+  <rect x="180" y="174" width="188" height="46" rx="3" fill="#8b949e"/>
+  <text x="172" y="194" text-anchor="end" font-size="13" font-weight="700" fill="#1f2328">REFUGE2</text>
+  <text x="172" y="210" text-anchor="end" font-size="10.5" fill="#57606a">REFUGE 2018 training split</text>
+  <text x="376" y="202" font-size="13" font-weight="700" fill="#1f2328">400</text>
+
+  <!-- G1020: 1020 -->
+  <rect x="180" y="244" width="480" height="46" rx="3" fill="#8b949e"/>
+  <text x="172" y="264" text-anchor="end" font-size="13" font-weight="700" fill="#1f2328">G1020</text>
+  <text x="172" y="280" text-anchor="end" font-size="10.5" fill="#57606a">Chinese multi-center</text>
+  <text x="668" y="272" font-size="13" font-weight="700" fill="#1f2328">1,020</text>
+
+  <text x="180" y="326" font-size="11" fill="#8b949e">Source: data/processed/combined_v2/MANIFEST.md and models/production/dataset_metadata_v1.json</text>
+</svg>
